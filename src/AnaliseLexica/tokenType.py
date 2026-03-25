@@ -7,7 +7,6 @@ class TokenType(Enum):
     # Condicionais
     IF = auto()
     ELSE = auto()
-    ELIF = auto()
 
     # Switch e Case
     SWITCH = auto()
@@ -28,7 +27,7 @@ class TokenType(Enum):
     TYPE_STRING = auto()
     TYPE_CHAR = auto()
 
-    BOOLEAN = auto()
+    TYPE_BOOLEAN = auto()
     TRUE = auto()
     FALSE = auto()
 
@@ -43,8 +42,6 @@ class TokenType(Enum):
     SINGLE_QUOTE = auto()
     LEFT_PAREN = auto()
     RIGHT_PAREN = auto()
-    LEFT_BRACE = auto()
-    RIGHT_BRACE = auto()
 
     # Operadores Relacionais
     LESS = auto()
@@ -52,8 +49,8 @@ class TokenType(Enum):
     LESS_EQUAL = auto()
     GREATER_EQUAL = auto()
     ASSIGN = auto()
-    DIFFERENT = auto()
-    DOUBLE_EQUAL = auto()
+    NOT_EQUAL = auto()
+    EQUAL = auto()
 
     # Operadores Logicos
     OR = auto()
@@ -70,13 +67,8 @@ class TokenType(Enum):
     WHOLE_DIVISION = auto()
 
     #Entrada e Saída
-    CIN = auto()
-    COUT = auto()
-
-    # Texto e Documentação
-    COMMENT_INLINE = auto()
-    COMMENT_BEGIN = auto()
-    COMMENT_END = auto()
+    INPUT = auto()
+    OUTPUT = auto()
 
     # Bases Numéricas
     LITERAL_INT = auto()
@@ -89,3 +81,30 @@ class TokenType(Enum):
 
     # Fim do Código
     EOF = auto()
+
+    PALAVRAS_CHAVE = {
+        #Fluxo e Funções
+        "bora_cumpade" : TokenType.MAIN,
+        "ta_bao" : TokenType.RETURN,
+        "para_o_trem" : TokenType.BREAK,
+        "toca_o_trem" : TokenType.CONTINUE,
+
+        #Estruturas de Controle
+        "uai_se" : TokenType.IF,
+        "uai_senao" : TokenType.ELSE,
+        "enquanto_tiver_trem" : TokenType.WHILE,
+        "dependenu" : TokenType.SWITCH,
+        "du_casu" : TokenType.CASE,
+         
+        #Variáveis de Dados
+        "trem_di_numeru" : TokenType.TYPE_INT,
+        "Trem_cum_virgula" : TokenType.TYPE_CHAR,
+        "trem_discrita": TokenType.TYPE_STRING,
+        "trem_discolhe" : TokenType.TYPE_BOOLEAN,
+        "eh" : TokenType.TRUE,
+        "num_eh" : TokenType.FALSE,
+        "char" : TokenType.TYPE_CHAR,
+
+        #Escopo e Sintaxe
+        "simbora" : TokenType. 
+    }
