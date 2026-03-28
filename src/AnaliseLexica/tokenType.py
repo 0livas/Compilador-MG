@@ -1,5 +1,6 @@
 from enum import Enum, auto
 
+
 class TokenType(Enum):
     # Main
     MAIN = auto()
@@ -78,33 +79,42 @@ class TokenType(Enum):
 
     # Identificador
     IDENTIFIER = auto()
+                
+    # Comentários
+    COMMENT_LINE = auto()
+    COMMENT_BLOCK = auto()
 
     # Fim do Código
     EOF = auto()
 
-    PALAVRAS_CHAVE = {
-        #Fluxo e Funções
-        "bora_cumpade" : TokenType.MAIN,
-        "ta_bao" : TokenType.RETURN,
-        "para_o_trem" : TokenType.BREAK,
-        "toca_o_trem" : TokenType.CONTINUE,
-
-        #Estruturas de Controle
-        "uai_se" : TokenType.IF,
-        "uai_senao" : TokenType.ELSE,
-        "enquanto_tiver_trem" : TokenType.WHILE,
-        "dependenu" : TokenType.SWITCH,
-        "du_casu" : TokenType.CASE,
-         
-        #Variáveis de Dados
-        "trem_di_numeru" : TokenType.TYPE_INT,
-        "Trem_cum_virgula" : TokenType.TYPE_CHAR,
-        "trem_discrita": TokenType.TYPE_STRING,
-        "trem_discolhe" : TokenType.TYPE_BOOLEAN,
-        "eh" : TokenType.TRUE,
-        "num_eh" : TokenType.FALSE,
-        "char" : TokenType.TYPE_CHAR,
-
-        #Escopo e Sintaxe
-        "simbora" : TokenType. 
-    }
+PALAVRAS_CHAVE = {
+    #Fluxo e Funções
+    "bora_cumpade" : TokenType.MAIN,
+    "ta_bao" : TokenType.RETURN,
+    "para_o_trem" : TokenType.BREAK,
+    "toca_o_trem" : TokenType.CONTINUE,
+    #Estruturas de Controle
+    "uai_se" : TokenType.IF,
+    "uai_senao" : TokenType.ELSE,
+    "enquanto_tiver_trem" : TokenType.WHILE,
+    "dependenu" : TokenType.SWITCH,
+    "du_casu" : TokenType.CASE,
+    
+    #Variáveis de Dados
+    "trem_di_numeru": TokenType.TYPE_INT,
+    "trem_cum_virgula": TokenType.TYPE_FLOAT,
+    "trem_discrita": TokenType.TYPE_STRING,
+    "trem_discolhe": TokenType.TYPE_BOOLEAN,
+    "eh": TokenType.TRUE,
+    "num_eh": TokenType.FALSE,
+    
+    # Escopo e Sintaxe
+    "simbora": TokenType.BEGIN_BLOCK,
+    "cabou": TokenType.END_BLOCK,
+    # Entrada e Saída
+    "xove": TokenType.INPUT,
+    "oia_proce_ve": TokenType.OUTPUT,
+    # Comentários Multilinha
+    "causo": TokenType.COMMENT_BLOCK,
+    "fim_do_causo": TokenType.COMMENT_BLOCK,
+}
