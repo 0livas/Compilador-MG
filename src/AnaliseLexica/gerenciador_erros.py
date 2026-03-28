@@ -3,6 +3,16 @@ from typing import Optional
 
 @dataclass
 class ErroLexico:
+    """Representa um erro encontrado durante análise léxica.
+    
+    Atributos:
+        tipo: Classificação do erro
+        mensagem: Descrição do erro
+        linha: Número da linha (1-indexed)
+        coluna: Número da coluna (0-indexed)
+        lexema: Trecho problemático
+        sugestao: Dica para correção
+    """
 
     tipo: str
     mensagem: str
@@ -12,6 +22,7 @@ class ErroLexico:
     sugestao: Optional[str] = None
 
     def __str__(self) -> str:
+        """Formata o erro para exibição."""
         resultado = f"Erro Léxico [{self.tipo}] na linha {self.linha}, coluna {self.coluna}:"
         resultado += f"\n  {self.mensagem}"
 
@@ -24,6 +35,7 @@ class ErroLexico:
         return resultado
 
     def para_dict(self) -> dict:
+        """Converte o erro para dicionário."""
         return {
             "tipo": self.tipo,
             "mensagem": self.mensagem,
@@ -34,6 +46,10 @@ class ErroLexico:
         }
 
 class GerenciadorErros:
+    """Gerencia e acumula erros léxicos durante análise.
+    
+    Registra erros com contexto completo para relatórios detalhados.
+    """
 
     def __init__(self):
         self.erros: list[ErroLexico] = []
@@ -45,6 +61,7 @@ class GerenciadorErros:
         coluna: int,
         motivo: str = "",
     ) -> None:
+        """Registra erro de número inválido."""
         msg = f"Número inválido: '{lexema}'"
         if motivo:
             msg += f" ({motivo})"
@@ -62,6 +79,7 @@ class GerenciadorErros:
     def registrar_string_nao_fechada(
         self, linha_inicio: int, coluna_inicio: int, linha_fim: int
     ) -> None:
+        """Registra erro de string não fechada."""
         erro = ErroLexico(
             tipo="string não fechada",
             mensagem=f"String iniciado em linha {linha_inicio}, coluna {coluna_inicio} "
@@ -75,6 +93,7 @@ class GerenciadorErros:
     def registrar_char_nao_fechado(
         self, linha: int, coluna: int, char_lido: str = ""
     ) -> None:
+        """Registra erro de caractere literal não fechado."""
         erro = ErroLexico(
             tipo="caractere literal não fechado",
             mensagem="Caractere literal não foi fechado com apóstrofo",

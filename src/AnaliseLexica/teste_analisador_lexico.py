@@ -1,3 +1,16 @@
+"""Suite de testes para o Analisador Léxico Minerês.
+
+Testa todos os componentes:
+- Código válido
+- Números em 6 formatos
+- Strings e caracteres
+- Operadores e comparadores
+- Palavras-chave
+- Tratamento de erros
+- Análise de arquivos
+- Comentários
+"""
+
 import sys
 from pathlib import Path
 
@@ -7,6 +20,7 @@ from analisador_lexico import AnalisadorLexico
 from mineires_token import Token
 
 def exibir_tokens(tokens: list, titulo: str = "") -> None:
+    """Exibe tokens em formato tabular."""
     if titulo:
         print(f"\n{'='*70}")
         print(f"  {titulo}")
@@ -320,6 +334,7 @@ cabou
         print("✓ Nenhum erro encontrado!")
 
 def main() -> None:
+    """Executa a suite de testes."""
     """Executa todos os testes."""
     print("\n" + "="*70)
     print("TESTES DO ANALISADOR LÉXICO - LINGUAGEM MINERÊS")

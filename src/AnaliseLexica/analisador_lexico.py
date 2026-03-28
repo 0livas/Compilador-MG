@@ -6,6 +6,14 @@ from validadores_numericos import ValidadorNumerico
 from gerenciador_erros import GerenciadorErros
 
 class AnalisadorLexico:
+    """Realizador da análise léxica. Lê código-fonte e produz tokens.
+    
+    Coordena todos os componentes:
+    - GerenciadorTokens: classficação de palavras-chave e símbolos
+    - ValidadorNumerico: validação de números
+    - GerenciadorErros: registro de erros com contexto
+    - Processadores especializados: strings, números, identificadores, etc
+    """
 
     def __init__(self):
         self.gerenciador_tokens = GerenciadorTokens()
@@ -19,6 +27,7 @@ class AnalisadorLexico:
         self.posicao: int = 0
 
     def analisar_arquivo(self, caminho_arquivo: str) -> tuple[list[Token], GerenciadorErros]:
+        """Analisa um arquivo com código Minerês."""
         try:
             with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
                 self.codigo = arquivo.read()
@@ -59,6 +68,7 @@ class AnalisadorLexico:
         return self.tokens, self.gerenciador_erros
 
     def analisar_codigo(self, codigo: str) -> tuple[list[Token], GerenciadorErros]:
+        """Analisa string com código Minerês."""
     
         self.codigo = codigo
         self.tokens = []
@@ -81,6 +91,7 @@ class AnalisadorLexico:
         return self.tokens, self.gerenciador_erros
 
     def _analisar(self) -> None:
+        """Loop principal que tokeniza o código-fonte."""
     
         while self.posicao < len(self.codigo):
             char = self.codigo[self.posicao]
@@ -128,6 +139,7 @@ class AnalisadorLexico:
             self.coluna_atual += 1
 
     def _processar_espaco_em_branco(self, char: str) -> None:
+        """Ignora espaços em branco e atualiza contadores."""
     
         if char == "\t":
             self.coluna_atual += 4
@@ -137,6 +149,7 @@ class AnalisadorLexico:
         self.posicao += 1
 
     def _processar_string(self) -> None:
+        """Processa string com aspas duplas e escapes."""
     
         coluna_inicio = self.coluna_atual
         linha_inicio = self.linha_atual
@@ -202,6 +215,7 @@ class AnalisadorLexico:
         )
 
     def _processar_caractere_literal(self) -> None:
+        """Processa caractere com apóstrofos."""
     
         coluna_inicio = self.coluna_atual
         linha_inicio = self.linha_atual
@@ -279,6 +293,7 @@ class AnalisadorLexico:
         )
 
     def _processar_numero(self) -> None:
+        """Processa número em múltiplas bases."""
     
         coluna_inicio = self.coluna_atual
         linha_inicio = self.linha_atual
@@ -372,6 +387,7 @@ class AnalisadorLexico:
         return lexema
 
     def _processar_identificador(self) -> None:
+        """Processa identificador ou palavra-chave."""
     
         coluna_inicio = self.coluna_atual
         linha_inicio = self.linha_atual
@@ -408,6 +424,7 @@ class AnalisadorLexico:
             )
 
     def _processar_operador(self) -> None:
+        """Processa operadores e símbolos."""
     
         coluna_inicio = self.coluna_atual
         linha_inicio = self.linha_atual
@@ -451,6 +468,7 @@ class AnalisadorLexico:
             self.coluna_atual += 1
 
     def _processar_comentario_linha(self) -> None:
+        """Ignora comentário de uma linha (//)."""
     
         self.posicao += 2
         self.coluna_atual += 2
@@ -460,6 +478,7 @@ class AnalisadorLexico:
             self.coluna_atual += 1
 
     def _processar_comentario_bloco_mineiro(self, coluna_inicio: int, linha_inicio: int) -> None:
+        """Processa comentário multilinha (causo ... fim_do_causo)."""
     
         encontrou_fim = False
 

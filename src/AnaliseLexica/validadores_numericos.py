@@ -3,6 +3,7 @@ from enum import Enum
 from tokenType import TokenType
 
 class TipoNumero(Enum):
+    """Tipos de números suportados pela linguagem Minerês."""
     INTEIRO_DECIMAL = 1
     INTEIRO_HEXADECIMAL = 2
     INTEIRO_OCTAL = 3
@@ -11,6 +12,16 @@ class TipoNumero(Enum):
     NOTACAO_CIENTIFICA = 6
 
 class ValidadorNumerico:
+    """Valida e classifica números usando regex.
+    
+    Suporta 6 bases/formatos:
+    - Decimal: 42
+    - Hexadecimal: 0xFF
+    - Octal: 0o77
+    - Binário: 0b1010
+    - Ponto flutuante: 3.14
+    - Notação científica: 1.5e-3
+    """
 
     def __init__(self):
         self.padroes = {
@@ -23,7 +34,7 @@ class ValidadorNumerico:
         }
 
     def validar_numero(self, lexema: str) -> tuple[bool, TipoNumero | None]:
-     
+        """Valida e classifica um número. Testa padrões em ordem específica."""
         if not lexema:
             return False, None
 
@@ -43,6 +54,7 @@ class ValidadorNumerico:
         return False, None
 
     def converter_para_token_type(self, tipo_numero: TipoNumero) -> TokenType:
+        """Converte TipoNumero para TokenType apropriado."""
         if tipo_numero in [
             TipoNumero.INTEIRO_DECIMAL,
             TipoNumero.INTEIRO_HEXADECIMAL,
@@ -54,6 +66,7 @@ class ValidadorNumerico:
             return TokenType.LITERAL_FLOAT
 
     def obter_descricao_tipo(self, tipo_numero: TipoNumero) -> str:
+        """Retorna descrição legível do tipo de número."""
         descricoes = {
             TipoNumero.INTEIRO_DECIMAL: "inteiro decimal",
             TipoNumero.INTEIRO_HEXADECIMAL: "inteiro hexadecimal",
@@ -65,9 +78,11 @@ class ValidadorNumerico:
         return descricoes.get(tipo_numero, "número desconhecido")
 
     def eh_inicio_numero(self, char: str) -> bool:
+        """Verifica se caractere pode iniciar um número."""
         return char.isdigit()
 
     def validar_sequencia_numerica(self, lexema: str) -> bool:
+        """Valida se sequência de caracteres forma um número."""
         if not lexema:
             return False
 
