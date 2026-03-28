@@ -1,0 +1,18 @@
+bora_cumpade
+simbora
+    trem_di_numeru num = 0xFF;
+    trem_di_numeru octal = 0o77;
+    trem_di_numeru binario = 0b1010;
+    
+    trem_cum_virgula valores = 1.5e-3;
+    
+    uai_se (num > 0xFF12G) simbora
+        talavez "erro: número inválido";
+    cabou
+    
+    trem_discrita str = "String normal aqui";
+    trem_discrita str2 = "String com escape: \n\t\"aspas\"";
+    
+    trem_discrita str3 = "String sem fechar
+    
+cabou

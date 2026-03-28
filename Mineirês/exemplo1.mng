@@ -1,0 +1,14 @@
+bora_cumpade
+simbora
+    trem_di_numeru i=0;
+    trem_cum_virgula x=3.14;
+    trem_discrita mensagem = "Olá Minerês!";
+    
+    uai_se (i < 10) simbora
+        talavez "Número: " i;
+    cabou
+    
+    enquanto_tiver_trem (x > 0) simbora
+        x = x - 0.5;
+    cabou
+cabou
