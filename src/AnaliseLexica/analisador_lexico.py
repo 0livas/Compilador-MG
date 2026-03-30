@@ -96,14 +96,14 @@ class AnalisadorLexico:
         while self.posicao < len(self.codigo):
             char = self.codigo[self.posicao]
 
-            if self.gerenciador_tokens.eh_espaco_em_branco(char):
-                self._processar_espaco_em_branco(char)
-                continue
-
             if char == "\n":
                 self.linha_atual += 1
                 self.coluna_atual = 0
                 self.posicao += 1
+                continue
+
+            if self.gerenciador_tokens.eh_espaco_em_branco(char):
+                self._processar_espaco_em_branco(char)
                 continue
 
             if char == '"':
@@ -114,19 +114,24 @@ class AnalisadorLexico:
                 self._processar_caractere_literal()
                 continue
 
-            if self.validador_numerico.eh_inicio_numero(char):
-                self._processar_numero()
-                continue
-
-            if char.isalpha() or char == "_":
-                self._processar_identificador()
-                continue
-
             if char == "/" and self.posicao + 1 < len(self.codigo):
                 proximo_char = self.codigo[self.posicao + 1]
                 if proximo_char == "/":
                     self._processar_comentario_linha()
                     continue
+
+            if self.validador_numerico.eh_inicio_numero(char):
+                if char == ".":
+                    if self.posicao + 1 < len(self.codigo) and self.codigo[self.posicao + 1].isdigit():
+                        self._processar_numero()
+                        continue
+                else:
+                    self._processar_numero()
+                    continue
+
+            if char.isalpha() or char == "_":
+                self._processar_identificador()
+                continue
 
             if self.gerenciador_tokens.eh_delimitador(char):
                 self._processar_operador()
@@ -186,11 +191,6 @@ class AnalisadorLexico:
                         self.posicao += 2
                         self.coluna_atual += 2
                         continue
-                    else:
-                        lexema += char
-                        self.posicao += 1
-                        self.coluna_atual += 1
-                        continue
 
             if char == '"':
                 self.posicao += 1
@@ -222,71 +222,67 @@ class AnalisadorLexico:
         self.posicao += 1
         self.coluna_atual += 1
 
+        if self.posicao >= len(self.codigo):
+            self.gerenciador_erros.registrar_char_nao_fechado(
+                linha_inicio, coluna_inicio, ""
+            )
+            return
+
+        char = self.codigo[self.posicao]
+
+        if char == "\n":
+            self.gerenciador_erros.registrar_char_nao_fechado(
+                self.linha_atual, self.coluna_atual, ""
+            )
+            self.linha_atual += 1
+            self.coluna_atual = 0
+            self.posicao += 1
+            return
+
         lexema = ""
 
-        while self.posicao < len(self.codigo):
-            char = self.codigo[self.posicao]
-
-            if char == "\n":
-                self.gerenciador_erros.registrar_char_nao_fechado(
-                    self.linha_atual, self.coluna_atual, lexema
-                )
-                self.linha_atual += 1
-                self.coluna_atual = 0
-                self.posicao += 1
-                return
-
-            if char == "\\":
-                if self.posicao + 1 < len(self.codigo):
-                    proximo = self.codigo[self.posicao + 1]
-                    if proximo in "ntr\\'\"":
-                        escape_map = {
-                            "n": "\n",
-                            "t": "\t",
-                            "r": "\r",
-                            "\\": "\\",
-                            "'": "'",
-                            '"': '"',
-                        }
-                        lexema += escape_map[proximo]
-                        self.posicao += 2
-                        self.coluna_atual += 2
-                        if self.posicao < len(self.codigo) and self.codigo[self.posicao] == "'":
-                            self.posicao += 1
-                            self.coluna_atual += 1
-                            self.tokens.append(
-                                Token(
-                                    lexema=lexema,
-                                    token=TokenType.LITERAL_CHAR,
-                                    linha=linha_inicio,
-                                    coluna=coluna_inicio,
-                                )
-                            )
-                            return
-                        else:
-                            self.gerenciador_erros.registrar_char_nao_fechado(
-                                self.linha_atual, self.coluna_atual, lexema
-                            )
-                            return
-                        continue
-
-            if char == "'":
-                self.posicao += 1
-                self.coluna_atual += 1
-
-                self.tokens.append(
-                    Token(
-                        lexema=lexema,
-                        token=TokenType.LITERAL_CHAR,
-                        linha=linha_inicio,
-                        coluna=coluna_inicio,
+        if char == "\\":
+            if self.posicao + 1 < len(self.codigo):
+                proximo = self.codigo[self.posicao + 1]
+                if proximo in "ntr\\'\"":
+                    escape_map = {
+                        "n": "\n",
+                        "t": "\t",
+                        "r": "\r",
+                        "\\": "\\",
+                        "'": "'",
+                        '"': '"',
+                    }
+                    lexema = escape_map[proximo]
+                    self.posicao += 2
+                    self.coluna_atual += 2
+                else:
+                    self.gerenciador_erros.registrar_char_nao_fechado(
+                        self.linha_atual, self.coluna_atual, "\\"
                     )
+                    return
+            else:
+                self.gerenciador_erros.registrar_char_nao_fechado(
+                    self.linha_atual, self.coluna_atual, "\\"
                 )
                 return
-
-            lexema += char
+        else:
+            lexema = char
             self.posicao += 1
             self.coluna_atual += 1
+
+        if self.posicao < len(self.codigo) and self.codigo[self.posicao] == "'":
+            self.posicao += 1
+            self.coluna_atual += 1
+            self.tokens.append(
+                Token(
+                    lexema=lexema,
+                    token=TokenType.LITERAL_CHAR,
+                    linha=linha_inicio,
+                    coluna=coluna_inicio,
+                )
+            )
+            return
 
         self.gerenciador_erros.registrar_char_nao_fechado(
             self.linha_atual, self.coluna_atual, lexema
@@ -326,33 +322,7 @@ class AnalisadorLexico:
     
         lexema = ""
 
-        if self.posicao < len(self.codigo) and self.codigo[self.posicao] == "0":
-            lexema += "0"
-            self.posicao += 1
-            self.coluna_atual += 1
-
-            if self.posicao < len(self.codigo):
-                prefixo = self.codigo[self.posicao]
-                if prefixo in "xXoObB":
-                    lexema += prefixo
-                    self.posicao += 1
-                    self.coluna_atual += 1
-
-        while self.posicao < len(self.codigo):
-            char = self.codigo[self.posicao]
-
-            if not (char.isdigit() or char in "ABCDEFabcdef"):
-                break
-
-            lexema += char
-            self.posicao += 1
-            self.coluna_atual += 1
-
-        if (
-            self.posicao < len(self.codigo)
-            and self.codigo[self.posicao] == "."
-            and not lexema.startswith(("0x", "0X", "0o", "0O", "0b", "0B"))
-        ):
+        if self.posicao < len(self.codigo) and self.codigo[self.posicao] == ".":
             lexema += "."
             self.posicao += 1
             self.coluna_atual += 1
@@ -362,22 +332,54 @@ class AnalisadorLexico:
                 self.posicao += 1
                 self.coluna_atual += 1
 
-        if (
-            self.posicao < len(self.codigo)
-            and self.codigo[self.posicao] in "eE"
-            and not lexema.startswith(("0x", "0X", "0o", "0O", "0b", "0B"))
-        ):
+            return lexema
+
+        if self.posicao < len(self.codigo) and self.codigo[self.posicao] == "0":
+            lexema += "0"
+            self.posicao += 1
+            self.coluna_atual += 1
+
+            if self.posicao < len(self.codigo) and self.codigo[self.posicao] in "xX":
+                lexema += self.codigo[self.posicao]
+                self.posicao += 1
+                self.coluna_atual += 1
+
+                while self.posicao < len(self.codigo):
+                    char = self.codigo[self.posicao]
+                    if not (char.isdigit() or char in "abcdefABCDEF"):
+                        break
+                    lexema += char
+                    self.posicao += 1
+                    self.coluna_atual += 1
+
+                return lexema
+
+            while self.posicao < len(self.codigo) and self.codigo[self.posicao].isdigit():
+                lexema += self.codigo[self.posicao]
+                self.posicao += 1
+                self.coluna_atual += 1
+
+            if self.posicao < len(self.codigo) and self.codigo[self.posicao] == ".":
+                lexema += "."
+                self.posicao += 1
+                self.coluna_atual += 1
+
+                while self.posicao < len(self.codigo) and self.codigo[self.posicao].isdigit():
+                    lexema += self.codigo[self.posicao]
+                    self.posicao += 1
+                    self.coluna_atual += 1
+
+            return lexema
+
+        while self.posicao < len(self.codigo) and self.codigo[self.posicao].isdigit():
             lexema += self.codigo[self.posicao]
             self.posicao += 1
             self.coluna_atual += 1
 
-            if (
-                self.posicao < len(self.codigo)
-                and self.codigo[self.posicao] in "+-"
-            ):
-                lexema += self.codigo[self.posicao]
-                self.posicao += 1
-                self.coluna_atual += 1
+        if self.posicao < len(self.codigo) and self.codigo[self.posicao] == ".":
+            lexema += "."
+            self.posicao += 1
+            self.coluna_atual += 1
 
             while self.posicao < len(self.codigo) and self.codigo[self.posicao].isdigit():
                 lexema += self.codigo[self.posicao]
@@ -413,7 +415,7 @@ class AnalisadorLexico:
         if token_type is None:
             token_type = TokenType.IDENTIFIER
 
-        if token_type != TokenType.COMMENT_BLOCK:
+        if token_type not in (TokenType.BEGIN_COMMENT, TokenType.END_COMMENT, TokenType.INLINE_COMMENT):
             self.tokens.append(
                 Token(
                     lexema=lexema,
@@ -460,12 +462,13 @@ class AnalisadorLexico:
             )
             self.posicao += 1
             self.coluna_atual += 1
-        else:
-            self.gerenciador_erros.registrar_caractere_invalido(
-                char, linha_inicio, coluna_inicio
-            )
-            self.posicao += 1
-            self.coluna_atual += 1
+            return
+
+        self.gerenciador_erros.registrar_caractere_invalido(
+            char, linha_inicio, coluna_inicio
+        )
+        self.posicao += 1
+        self.coluna_atual += 1
 
     def _processar_comentario_linha(self) -> None:
         """Ignora comentário de uma linha (//)."""
@@ -481,42 +484,33 @@ class AnalisadorLexico:
         """Processa comentário multilinha (causo ... fim_do_causo)."""
     
         encontrou_fim = False
+        lexema_fim = "fim_do_causo"
 
         while self.posicao < len(self.codigo):
-            if self.codigo[self.posicao] == "\n":
+            char = self.codigo[self.posicao]
+
+            if char == "\n":
                 self.linha_atual += 1
                 self.coluna_atual = 0
                 self.posicao += 1
                 continue
 
-            if self.posicao + len("fim_do_causo") <= len(self.codigo):
-                fim_lexema = ""
-                pos_check = self.posicao
+            if self.codigo.startswith(lexema_fim, self.posicao):
+                fim_pos = self.posicao + len(lexema_fim)
 
-                if self.gerenciador_tokens.eh_espaco_em_branco(self.codigo[self.posicao]):
-                    while (
-                        pos_check < len(self.codigo)
-                        and self.gerenciador_tokens.eh_espaco_em_branco(
-                            self.codigo[pos_check]
-                        )
-                    ):
-                        if self.codigo[pos_check] == "\t":
-                            self.coluna_atual += 4
-                        else:
-                            self.coluna_atual += 1
-                        pos_check += 1
-                        self.posicao += 1
+                antes_ok = (
+                    self.posicao == 0
+                    or (not self.codigo[self.posicao - 1].isalnum() and self.codigo[self.posicao - 1] != "_")
+                )
 
-                while pos_check < len(self.codigo):
-                    char = self.codigo[pos_check]
-                    if not (char.isalnum() or char == "_"):
-                        break
-                    fim_lexema += char
-                    pos_check += 1
+                depois_ok = (
+                    fim_pos >= len(self.codigo)
+                    or (not self.codigo[fim_pos].isalnum() and self.codigo[fim_pos] != "_")
+                )
 
-                if fim_lexema.lower() == "fim_do_causo":
-                    self.posicao = pos_check
-                    self.coluna_atual += len(fim_lexema)
+                if antes_ok and depois_ok:
+                    self.posicao = fim_pos
+                    self.coluna_atual += len(lexema_fim)
                     encontrou_fim = True
                     break
 

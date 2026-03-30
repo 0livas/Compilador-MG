@@ -45,12 +45,12 @@ def exibir_tokens(tokens: list, titulo: str = "") -> None:
 def teste_codigo_valido() -> None:
     analisador = AnalisadorLexico()
 
-    codigo_simples = """bora_cumpade
+    codigo_simples = """bora_cumpade main()
 simbora
-    trem_di_numeru i = 0;
-    trem_cum_virgula x = 3.14;
-    talavez "Hello Minerês!";
-cabou"""
+    trem_di_numeru i fica_assim_entao 0 uai
+    trem_cum_virgula x fica_assim_entao 3.14 uai
+    oia_proce_ve "Hello Minerês!" uai
+cabo"""
 
     tokens, erros = analisador.analisar_codigo(codigo_simples)
 
@@ -64,13 +64,13 @@ cabou"""
 def teste_numeros() -> None:
     analisador = AnalisadorLexico()
 
-    codigo_numeros = """trem_di_numeru dec = 42;
-trem_di_numeru hex = 0xFF;
-trem_di_numeru oct = 0o77;
-trem_di_numeru bin = 0b1010;
-trem_cum_virgula float1 = 3.14;
-trem_cum_virgula float2 = 1.5e-3;
-trem_cum_virgula float3 = 2.0E+10;"""
+    codigo_numeros = """trem_di_numeru dec fica_assim_entao 42 uai
+trem_di_numeru hex fica_assim_entao 0xFF uai
+trem_di_numeru oct1 fica_assim_entao 07 uai
+trem_di_numeru oct2 fica_assim_entao 017 uai
+trem_cum_virgula float1 fica_assim_entao 3.14 uai
+trem_cum_virgula float2 fica_assim_entao .92 uai
+trem_cum_virgula float3 fica_assim_entao 0.33 uai"""
 
     tokens, erros = analisador.analisar_codigo(codigo_numeros)
 
@@ -84,9 +84,11 @@ trem_cum_virgula float3 = 2.0E+10;"""
 def teste_strings_e_chars() -> None:
     analisador = AnalisadorLexico()
 
-    codigo_strings = """trem_discrita msg1 = "Ola Minerês!";
-trem_discrita msg2 = "String com escapes: \\n \\t \\\\ \\"aspas\\"";
-trem_discrita msg3 = "";
+    codigo_strings = """trem_discrita msg1 fica_assim_entao "Ola Minerês!" uai
+trem_discrita msg2 fica_assim_entao "String com escapes: \\n \\t \\\\ \\"aspas\\"" uai
+trem_discrita msg3 fica_assim_entao "" uai
+trosso letra fica_assim_entao 'a' uai
+trosso quebra fica_assim_entao '\\n' uai
 """
 
     tokens, erros = analisador.analisar_codigo(codigo_strings)
@@ -102,13 +104,13 @@ def teste_operadores() -> None:
     """Testa operadores e símbolos."""
     analisador = AnalisadorLexico()
 
-    codigo_ops = """a = b + c;
-d = e - f * g / h;
-uai_se (x <= 10 && y >= 5) simbora
-    z = a != b || c == d;
-cabou
-resultado = a % 2;
-divisao_inteira = 10 // 3;"""
+    codigo_ops = """x fica_assim_entao a + b uai
+y fica_assim_entao c - d uai
+resto fica_assim_entao valor % 2 uai
+
+uai_se (x <= 10 tamem y >= 5) simbora
+    z fica_assim_entao a neh_nada b quarque_um c mema_coisa d uai
+cabo"""
 
     tokens, erros = analisador.analisar_codigo(codigo_ops)
 
@@ -122,16 +124,16 @@ divisao_inteira = 10 // 3;"""
 def teste_palavras_chave() -> None:
     analisador = AnalisadorLexico()
 
-    codigo_palavras = """bora_cumpade
+    codigo_palavras = """bora_cumpade main()
 simbora
-    trem_di_numeru x = 0;
+    trem_di_numeru x fica_assim_entao 0 uai
     uai_se (x > 0) simbora
-        ta_bao x;
-    cabou
+        ta_bao x uai
+    cabo
     enquanto_tiver_trem (eh) simbora
-        toca_o_trem;
-    cabou
-cabou"""
+        toca_o_trem uai
+    cabo
+cabo"""
 
     tokens, erros = analisador.analisar_codigo(codigo_palavras)
 
@@ -146,10 +148,10 @@ def teste_erros() -> None:
     """Testa detecção de erros."""
     analisador = AnalisadorLexico()
 
-    codigo_com_erros = """trem_di_numeru num1 = 0xGG;
-trem_discrita str = "String aberta
-trem_di_numeru num2 = 0o99;
-trem_di_numeru @ = 5;"""
+    codigo_com_erros = """trem_di_numeru num1 fica_assim_entao 0xGG uai
+trem_discrita str fica_assim_entao "String aberta
+trem_di_numeru num2 fica_assim_entao 09 uai
+trem_di_numeru @ fica_assim_entao 5 uai"""
 
     tokens, erros = analisador.analisar_codigo(codigo_com_erros)
 
@@ -170,7 +172,7 @@ def teste_arquivo() -> None:
         print(f"{'='*70}\n")
 
         print(f"Conteúdo do arquivo:\n{'-'*70}")
-        with open(arquivo) as f:
+        with open(arquivo, encoding="utf-8") as f:
             print(f.read())
         print(f"{'-'*70}\n")
 
@@ -189,16 +191,16 @@ def teste_arquivo() -> None:
 def teste_comentario_linha() -> None:
     analisador = AnalisadorLexico()
 
-    codigo = """bora_cumpade
+    codigo = """bora_cumpade main()
 simbora
     // Este é um comentário de uma linha
-    trem_di_numeru x = 10;  // Comentário inline
+    trem_di_numeru x fica_assim_entao 10 uai  // Comentário inline
     
     // Outro comentário
     // E mais outro
-    talavez "olá";
+    oia_proce_ve "olá" uai
     
-cabou
+cabo
 """
 
     tokens, erros = analisador.analisar_codigo(codigo)
@@ -213,7 +215,7 @@ cabou
 def teste_comentario_bloco() -> None:
     analisador = AnalisadorLexico()
 
-    codigo = """bora_cumpade
+    codigo = """bora_cumpade main()
 simbora
     causo
         Este é um comentário
@@ -221,16 +223,16 @@ simbora
         e deve ser ignorado completamente
     fim_do_causo
     
-    trem_di_numeru y = 42;
+    trem_di_numeru y fica_assim_entao 42 uai
     
     causo
         Outro comentário de bloco
         com várias linhas
     fim_do_causo
     
-    talavez "programa continua";
+    oia_proce_ve "programa continua" uai
     
-cabou
+cabo
 """
 
     tokens, erros = analisador.analisar_codigo(codigo)
@@ -245,7 +247,7 @@ cabou
 def teste_comentarios_aninhados() -> None:
     analisador = AnalisadorLexico()
 
-    codigo = """bora_cumpade
+    codigo = """bora_cumpade main()
 simbora
     // Comentário de linha
     
@@ -256,9 +258,9 @@ simbora
     fim_do_causo
     
     // Mais um comentário de linha
-    trem_di_numeru z = 0xFF;
+    trem_di_numeru z fica_assim_entao 0xFF uai
     
-cabou
+cabo
 """
 
     tokens, erros = analisador.analisar_codigo(codigo)
@@ -273,14 +275,14 @@ cabou
 def teste_comentario_nao_fechado() -> None:
     analisador = AnalisadorLexico()
 
-    codigo = """bora_cumpade
+    codigo = """bora_cumpade main()
 simbora
-    trem_di_numeru x = 10;
+    trem_di_numeru x fica_assim_entao 10 uai
     
     causo
         Comentário sem ser fechado
         vai até aqui
-cabou
+cabo
 """
 
     tokens, erros = analisador.analisar_codigo(codigo)
@@ -302,10 +304,10 @@ def teste_codigo_real_com_comentarios() -> None:
     Data: 2026-03-27
 fim_do_causo
 
-bora_cumpade
+bora_cumpade main()
 simbora
     // Inicializar contador
-    trem_di_numeru contador = 0;
+    trem_di_numeru contador fica_assim_entao 0 uai
     
     causo
         Loop para imprimir números
@@ -313,13 +315,13 @@ simbora
     fim_do_causo
     
     enquanto_tiver_trem (contador <= 10) simbora
-        talavez contador;  // Exibir valor
-        contador = contador + 1;  // Incrementar
-    cabou
+        oia_proce_ve contador uai  // Exibir valor
+        contador fica_assim_entao contador + 1 uai  // Incrementar
+    cabo
     
     // Fim do programa
-    ta_bao 0;
-cabou
+    ta_bao 0 uai
+cabo
 """
 
     tokens, erros = analisador.analisar_codigo(codigo)

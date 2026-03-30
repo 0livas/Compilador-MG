@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from tokenType import TokenType
 
 
 @dataclass
@@ -12,6 +13,6 @@ class Token:
         coluna: Número da coluna onde o token foi encontrado (0-indexed)
     """
     lexema: str = ""
-    token: int = 0
+    token: TokenType = TokenType.EOF
     linha: int = 0
     coluna: int = 0

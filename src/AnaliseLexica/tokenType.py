@@ -1,6 +1,5 @@
 from enum import Enum, auto
 
-
 class TokenType(Enum):
     # Main
     MAIN = auto()
@@ -39,8 +38,6 @@ class TokenType(Enum):
     # Delimitadores
     SEMICOLON = auto()
     COMMA = auto()
-    QUOTE = auto()
-    SINGLE_QUOTE = auto()
     LEFT_PAREN = auto()
     RIGHT_PAREN = auto()
 
@@ -65,7 +62,6 @@ class TokenType(Enum):
     MULTIPLY = auto()
     DIVIDE = auto()
     MOD = auto()
-    WHOLE_DIVISION = auto()
 
     #Entrada e Saída
     INPUT = auto()
@@ -79,13 +75,15 @@ class TokenType(Enum):
 
     # Identificador
     IDENTIFIER = auto()
-                
-    # Comentários
-    COMMENT_LINE = auto()
-    COMMENT_BLOCK = auto()
+
+    #Comentários
+    BEGIN_COMMENT = auto()
+    END_COMMENT = auto()
+    INLINE_COMMENT = auto()
 
     # Fim do Código
     EOF = auto()
+
 
 PALAVRAS_CHAVE = {
     #Fluxo e Funções
@@ -93,28 +91,58 @@ PALAVRAS_CHAVE = {
     "ta_bao" : TokenType.RETURN,
     "para_o_trem" : TokenType.BREAK,
     "toca_o_trem" : TokenType.CONTINUE,
+
     #Estruturas de Controle
     "uai_se" : TokenType.IF,
     "uai_senao" : TokenType.ELSE,
+    "roda_esse_trem" : TokenType.FOR,
     "enquanto_tiver_trem" : TokenType.WHILE,
     "dependenu" : TokenType.SWITCH,
     "du_casu" : TokenType.CASE,
-    
+         
     #Variáveis de Dados
-    "trem_di_numeru": TokenType.TYPE_INT,
-    "trem_cum_virgula": TokenType.TYPE_FLOAT,
+    "trem_di_numeru" : TokenType.TYPE_INT,
+    "trem_cum_virgula" : TokenType.TYPE_FLOAT,
     "trem_discrita": TokenType.TYPE_STRING,
-    "trem_discolhe": TokenType.TYPE_BOOLEAN,
-    "eh": TokenType.TRUE,
-    "num_eh": TokenType.FALSE,
-    
-    # Escopo e Sintaxe
-    "simbora": TokenType.BEGIN_BLOCK,
-    "cabou": TokenType.END_BLOCK,
-    # Entrada e Saída
-    "xove": TokenType.INPUT,
-    "oia_proce_ve": TokenType.OUTPUT,
-    # Comentários Multilinha
-    "causo": TokenType.COMMENT_BLOCK,
-    "fim_do_causo": TokenType.COMMENT_BLOCK,
+    "trem_discolhe" : TokenType.TYPE_BOOLEAN,
+    "eh" : TokenType.TRUE,
+    "num_eh" : TokenType.FALSE,
+    "trosso" : TokenType.TYPE_CHAR,
+
+    #Escopo e Sintaxe
+    "simbora" : TokenType.BEGIN_BLOCK,
+    "cabo" : TokenType.END_BLOCK,
+    "uai": TokenType.SEMICOLON,
+    "," : TokenType.COMMA,
+
+    # Operadores Relacionais
+    "<" : TokenType.LESS,
+    ">" : TokenType.GREATER,
+    "<=" : TokenType.LESS_EQUAL,
+    ">=" : TokenType.GREATER_EQUAL,
+    "fica_assim_entao" : TokenType.ASSIGN,
+    "neh_nada" : TokenType.NOT_EQUAL,
+    "mema_coisa" : TokenType.EQUAL,
+
+    #Operadores Lógicos
+    "quarque_um" : TokenType.OR,
+    "vam_marca" : TokenType.NOT,
+    "tamem" : TokenType.AND,
+    "um_o_oto" : TokenType.XOR,
+
+    #Operadores Aritméticos
+    "+" : TokenType.PLUS,
+    "-" : TokenType.MINUS,
+    "veiz" : TokenType.MULTIPLY,
+    "sob" : TokenType.DIVIDE,
+    "%" : TokenType.MOD,
+
+    #Entrada e Saída
+    "xove" : TokenType.INPUT,
+    "oia_proce_ve" : TokenType.OUTPUT,  
+
+    #Comentários
+    "//" : TokenType.INLINE_COMMENT,
+    "causo" : TokenType.BEGIN_COMMENT,
+    "fim_do_causo" : TokenType.END_COMMENT,
 }

@@ -14,33 +14,18 @@ class GerenciadorTokens:
         self.simbolos_simples = {
             "+": TokenType.PLUS,
             "-": TokenType.MINUS,
-            "*": TokenType.MULTIPLY,
-            "/": TokenType.DIVIDE,
             "%": TokenType.MOD,
-            ";": TokenType.SEMICOLON,
             ",": TokenType.COMMA,
             "(": TokenType.LEFT_PAREN,
             ")": TokenType.RIGHT_PAREN,
             "{": TokenType.BEGIN_BLOCK,
             "}": TokenType.END_BLOCK,
-            '"': TokenType.QUOTE,
-            "'": TokenType.SINGLE_QUOTE,
-            "=": TokenType.ASSIGN,
-            "!": TokenType.NOT,
-            "&": TokenType.AND,
-            "|": TokenType.OR,
-            "^": TokenType.XOR,
             "<": TokenType.LESS,
             ">": TokenType.GREATER,
         }
         self.simbolos_compostos = {
-            "==": TokenType.EQUAL,
-            "!=": TokenType.NOT_EQUAL,
             "<=": TokenType.LESS_EQUAL,
             ">=": TokenType.GREATER_EQUAL,
-            "&&": TokenType.AND,
-            "||": TokenType.OR,
-            "//": TokenType.WHOLE_DIVISION,
         }
 
     def buscar_palavra_chave(self, lexema: str) -> TokenType | None:
@@ -58,7 +43,7 @@ class GerenciadorTokens:
 
     def eh_parte_de_numero(self, char: str) -> bool:
         """Verifica se caractere pode fazer parte de um número."""
-        return char.isdigit() or char in "xXoObB._eE+-"
+        return char.isdigit() or char in "xXabcdefABCDEF."
 
     def eh_parte_de_identificador(self, char: str) -> bool:
         """Verifica se caractere pode fazer parte de um identificador."""
@@ -70,7 +55,7 @@ class GerenciadorTokens:
 
     def eh_delimitador(self, char: str) -> bool:
         """Verifica se caractere é um delimitador/operador."""
-        return char in self.simbolos_simples or char in "(){}[];,.\"\'"
+        return char in self.simbolos_simples or char in "{}()'\""
 
     def get_tamanho_palavras_chave(self) -> int:
         """Retorna quantidade de palavras-chave registradas."""
