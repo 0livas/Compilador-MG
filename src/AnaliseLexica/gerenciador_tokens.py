@@ -1,3 +1,5 @@
+from difflib import get_close_matches
+
 from tokenType import TokenType, PALAVRAS_CHAVE
 
 class GerenciadorTokens:
@@ -32,6 +34,19 @@ class GerenciadorTokens:
         """Busca palavra-chave na tabela (case-insensitive)."""
         lexema_lower = lexema.lower()
         return self.palavras_chave.get(lexema_lower)
+
+    def sugerir_palavra_chave_proxima(self, lexema: str, cutoff: float = 0.8) -> str | None:
+        """Retorna palavra-chave mais próxima para possíveis typos."""
+        if not lexema:
+            return None
+
+        matches = get_close_matches(
+            lexema.lower(),
+            list(self.palavras_chave.keys()),
+            n=1,
+            cutoff=cutoff,
+        )
+        return matches[0] if matches else None
 
     def buscar_simbolo_composto(self, simbolo: str) -> TokenType | None:
         """Busca símbolo composto (==, !=, <=, >=, etc)."""

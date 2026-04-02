@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from analisador_lexico import AnalisadorLexico
 from mineires_token import Token
+from tokenType import TokenType
 
 def exibir_tokens(tokens: list, titulo: str = "") -> None:
     """Exibe tokens em formato tabular."""
@@ -30,14 +31,15 @@ def exibir_tokens(tokens: list, titulo: str = "") -> None:
     print("-" * 70)
 
     for token in tokens:
-        if token.token.name == "EOF":
+        if token.token == TokenType.EOF:
             continue
 
         lexema_display = (
             repr(token.lexema) if token.token.name.startswith("LITERAL") else token.lexema
         )
+        tipo_display = f"{token.token.value} {token.token.name}"
         print(
-            f"{token.linha:<6} {token.coluna:<5} {lexema_display:<20} {token.token.name:<25}"
+            f"{token.linha:<6} {token.coluna:<5} {lexema_display:<20} {tipo_display:<25}"
         )
 
     print()
@@ -328,7 +330,7 @@ cabo
 
     exibir_tokens(tokens, "TESTE 12: Código Realista com Comentários")
 
-    print(f"Total de tokens gerados: {len([t for t in tokens if t.token.name != 'EOF'])}\n")
+    print(f"Total de tokens gerados: {len([t for t in tokens if t.token != TokenType.EOF])}\n")
 
     if erros.tem_erros():
         print(erros.gerar_relatorio())

@@ -413,6 +413,16 @@ class AnalisadorLexico:
         token_type = self.gerenciador_tokens.buscar_palavra_chave(lexema)
 
         if token_type is None:
+            sugestao_keyword = self.gerenciador_tokens.sugerir_palavra_chave_proxima(lexema)
+            if sugestao_keyword is not None:
+                self.gerenciador_erros.registrar_erro_customizado(
+                    tipo="possível typo de palavra-chave",
+                    mensagem=f"Identificador '{lexema}' é semelhante a uma palavra-chave da linguagem",
+                    linha=linha_inicio,
+                    coluna=coluna_inicio,
+                    lexema=lexema,
+                    sugestao=f"Você quis dizer '{sugestao_keyword}'?",
+                )
             token_type = TokenType.IDENTIFIER
 
         if token_type not in (TokenType.BEGIN_COMMENT, TokenType.END_COMMENT, TokenType.INLINE_COMMENT):

@@ -3,6 +3,7 @@ from enum import Enum, auto
 class TokenType(Enum):
     # Main
     MAIN = auto()
+    FUNCTION = auto()
 
     # Condicionais
     IF = auto()
@@ -87,7 +88,8 @@ class TokenType(Enum):
 
 PALAVRAS_CHAVE = {
     #Fluxo e Funções
-    "bora_cumpade" : TokenType.MAIN,
+    "bora_cumpade" : TokenType.FUNCTION,
+    "main" : TokenType.MAIN,
     "ta_bao" : TokenType.RETURN,
     "para_o_trem" : TokenType.BREAK,
     "toca_o_trem" : TokenType.CONTINUE,

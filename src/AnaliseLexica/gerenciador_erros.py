@@ -72,9 +72,34 @@ class GerenciadorErros:
             linha=linha,
             coluna=coluna,
             lexema=lexema,
-            sugestao="Verifique a sintaxe numérica (bases: decimal, 0x-hex, 0o-octal, 0b-binário)",
+            sugestao=self._sugestao_numero_invalido(lexema),
         )
         self.erros.append(erro)
+
+    def _sugestao_numero_invalido(self, lexema: str) -> str:
+        """Gera sugestão contextual para número inválido."""
+        if not lexema:
+            return "Use formatos válidos: 42, 3.14, .92, 0xFF, 07"
+
+        if lexema.lower().startswith("0x"):
+            return "Hexadecimal inválido. Use 0x seguido de [0-9A-Fa-f], ex: 0x1F"
+
+        if (
+            lexema.startswith("0")
+            and len(lexema) > 1
+            and "." not in lexema
+            and not lexema.lower().startswith("0x")
+            and any(char not in "01234567" for char in lexema[1:])
+        ):
+            return "Octal inválido. Após 0 inicial, use apenas dígitos de 0 a 7, ex: 07"
+
+        if lexema.count(".") > 1 or lexema.endswith("."):
+            return "Float inválido. Use formato com dígitos após o ponto, ex: 3.14 ou .92"
+
+        if any(char.isalpha() for char in lexema):
+            return "Remova letras do número ou use prefixo correto (0x para hexadecimal)"
+
+        return "Use formatos válidos: inteiro (42), float (3.14), hexadecimal (0xFF) ou octal (07)"
 
     def registrar_string_nao_fechada(
         self, linha_inicio: int, coluna_inicio: int, linha_fim: int
@@ -100,19 +125,43 @@ class GerenciadorErros:
             linha=linha,
             coluna=coluna,
             lexema=f"'{char_lido}",
-            sugestao="Use apóstrofos (') para delimitar caracteres: 'a'",
+            sugestao=self._sugestao_char_nao_fechado(char_lido),
         )
         self.erros.append(erro)
+
+    def _sugestao_char_nao_fechado(self, char_lido: str) -> str:
+        """Retorna sugestão específica para literal de caractere."""
+        if char_lido == "\\":
+            return "Escape incompleto. Use um escape válido e feche com ': '\\n', '\\t', '\\'', '\\\\'"
+
+        if char_lido:
+            return f"Feche o literal como '{char_lido}'"
+
+        return "Use o formato de caractere com apóstrofos: 'a'"
 
     def registrar_caractere_invalido(
         self, caractere: str, linha: int, coluna: int
     ) -> None:
+        sugestoes_por_caractere = {
+            ";": "Use 'uai' como delimitador de fim de instrução",
+            "=": "Use 'fica_assim_entao' para atribuição",
+            "!": "Use 'neh_nada' para desigualdade",
+            "&": "Use 'tamem' para operador lógico AND",
+            "|": "Use 'quarque_um' para operador lógico OR",
+            "*": "Use 'veiz' para multiplicação",
+            "/": "Use 'sob' para divisão ou '//' para comentário de linha",
+        }
+
         erro = ErroLexico(
             tipo="caractere inválido",
             mensagem=f"Caractere não reconhecido: '{caractere}' (ASCII {ord(caractere)})",
             linha=linha,
             coluna=coluna,
             lexema=caractere,
+            sugestao=sugestoes_por_caractere.get(
+                caractere,
+                "Verifique se o símbolo pertence à linguagem Minerês ou substitua pelo equivalente textual",
+            ),
         )
         self.erros.append(erro)
 
