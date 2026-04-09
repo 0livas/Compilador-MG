@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from tokenType import TokenType
+from .tokenType import TokenType
 
 class TipoNumero(Enum):
     """Tipos de números suportados pela linguagem Minerês."""

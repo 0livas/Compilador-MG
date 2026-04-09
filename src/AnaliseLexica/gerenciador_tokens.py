@@ -1,6 +1,6 @@
 from difflib import get_close_matches
 
-from tokenType import TokenType, PALAVRAS_CHAVE
+from .tokenType import TokenType, PALAVRAS_CHAVE
 
 class GerenciadorTokens:
     """Gerencia tabelas hash de palavras-chave e símbolos.
@@ -24,6 +24,7 @@ class GerenciadorTokens:
             "}": TokenType.END_BLOCK,
             "<": TokenType.LESS,
             ">": TokenType.GREATER,
+            ":": TokenType.COLON,
         }
         self.simbolos_compostos = {
             "<=": TokenType.LESS_EQUAL,
@@ -70,7 +71,7 @@ class GerenciadorTokens:
 
     def eh_delimitador(self, char: str) -> bool:
         """Verifica se caractere é um delimitador/operador."""
-        return char in self.simbolos_simples or char in "{}()'\""
+        return char in self.simbolos_simples or char in "{}()'\":"
 
     def get_tamanho_palavras_chave(self) -> int:
         """Retorna quantidade de palavras-chave registradas."""

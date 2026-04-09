@@ -14,11 +14,11 @@ Testa todos os componentes:
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from analisador_lexico import AnalisadorLexico
-from mineires_token import Token
-from tokenType import TokenType
+from AnaliseLexica.analisador_lexico import AnalisadorLexico
+from AnaliseLexica.mineires_token import Token
+from AnaliseLexica.tokenType import TokenType
 
 def exibir_tokens(tokens: list, titulo: str = "") -> None:
     """Exibe tokens em formato tabular."""
@@ -165,7 +165,7 @@ def teste_arquivo() -> None:
     analisador = AnalisadorLexico()
 
     arquivo = (
-        Path(__file__).parent.parent.parent / "Mineirês" / "exemplo1.mng"
+        Path(__file__).parent.parent.parent / "Mineirês" / "exemplo1.uai"
     )
 
     if arquivo.exists():

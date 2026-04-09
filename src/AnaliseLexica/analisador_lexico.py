@@ -1,9 +1,9 @@
 from pathlib import Path
-from mineires_token import Token
-from tokenType import TokenType
-from gerenciador_tokens import GerenciadorTokens
-from validadores_numericos import ValidadorNumerico
-from gerenciador_erros import GerenciadorErros
+from .mineires_token import Token
+from .tokenType import TokenType
+from .gerenciador_tokens import GerenciadorTokens
+from .validadores_numericos import ValidadorNumerico
+from .gerenciador_erros import GerenciadorErros
 
 class AnalisadorLexico:
     """Realizador da análise léxica. Lê código-fonte e produz tokens.

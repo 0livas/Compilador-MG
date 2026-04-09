@@ -41,6 +41,7 @@ class TokenType(Enum):
     COMMA = auto()
     LEFT_PAREN = auto()
     RIGHT_PAREN = auto()
+    COLON = auto()
 
     # Operadores Relacionais
     LESS = auto()
