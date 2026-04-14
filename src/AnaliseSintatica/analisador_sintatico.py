@@ -295,12 +295,12 @@ class AnalisadorSintatico:
         self.consumir(TokenType.END_BLOCK, "Esperava 'cabo' no switch")
 
     def dos_casos(self) -> None:
-        while self.verificar(TokenType.CASE) or self.verificar_lexema("default"):
+        while self.verificar(TokenType.CASE) or self.verificar(TokenType.DEFAULT):
             if self.verificar(TokenType.CASE):
                 self.do_caso()
             else:
-                self.avancar()
-                self.consumir(TokenType.COLON, "Esperava ':' após default")
+                self.consumir(TokenType.DEFAULT, "Esperava 'uai_so'")
+                self.consumir(TokenType.COLON, "Esperava ':' após uai_so")
                 self.stmt()
 
     def do_caso(self) -> None:

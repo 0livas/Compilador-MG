@@ -12,6 +12,7 @@ class TokenType(Enum):
     # Switch e Case
     SWITCH = auto()
     CASE = auto()
+    DEFAULT = auto()
 
     # Loops
     FOR = auto()
@@ -102,6 +103,7 @@ PALAVRAS_CHAVE = {
     "enquanto_tiver_trem" : TokenType.WHILE,
     "dependenu" : TokenType.SWITCH,
     "du_casu" : TokenType.CASE,
+    "uai_so" : TokenType.DEFAULT,
          
     #Variáveis de Dados
     "trem_di_numeru" : TokenType.TYPE_INT,
