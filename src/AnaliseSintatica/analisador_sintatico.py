@@ -191,6 +191,11 @@ class AnalisadorSintatico:
             self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após atribuição")
 
 # descricao das instrucoes
+    def for_declaration(self) -> None:
+        self.type_()
+        self.decl_item()
+        while self.match(TokenType.COMMA):
+            self.decl_item()
 
     def declaration(self) -> None:
         self.type_()
@@ -215,7 +220,16 @@ class AnalisadorSintatico:
         self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após for")
 
         if not self.verificar(TokenType.SEMICOLON):
-            self.atrib()
+            if self.atual().token in {
+                TokenType.TYPE_INT,
+                TokenType.TYPE_FLOAT,
+                TokenType.TYPE_STRING,
+                TokenType.TYPE_BOOLEAN,
+                TokenType.TYPE_CHAR,
+            }:
+                self.for_declaration()
+            else:
+                self.atrib()
         self.consumir(TokenType.SEMICOLON, "Esperava separador do for")
 
         if not self.verificar(TokenType.SEMICOLON):

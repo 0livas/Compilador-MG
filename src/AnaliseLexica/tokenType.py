@@ -116,6 +116,7 @@ PALAVRAS_CHAVE = {
     "simbora" : TokenType.BEGIN_BLOCK,
     "cabo" : TokenType.END_BLOCK,
     "uai": TokenType.SEMICOLON,
+    ";": TokenType.SEMICOLON,
     "," : TokenType.COMMA,
 
     # Operadores Relacionais
