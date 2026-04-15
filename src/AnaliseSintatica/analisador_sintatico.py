@@ -33,7 +33,33 @@ class AnalisadorSintatico:
         self.posicao = 0
 
     def analisar(self) -> bool:
-        self.function_()
+        encontrou_main = False
+        nomes_funcoes: set[str] = set()
+
+        if not self.verificar(TokenType.FUNCTION):
+            self.erro("Esperava declaração de função iniciando com 'bora_cumpade'")
+
+        while self.verificar(TokenType.FUNCTION):
+            nome_funcao, linha_funcao, coluna_funcao = self.function_()
+
+            if nome_funcao in nomes_funcoes:
+                raise ExcecaoSintatica(
+                    ErroSintatico(
+                        mensagem=f"Função '{nome_funcao}' já foi declarada",
+                        linha=linha_funcao,
+                        coluna=coluna_funcao,
+                        encontrado=f"IDENTIFIER ('{nome_funcao}')",
+                    )
+                )
+
+            nomes_funcoes.add(nome_funcao)
+
+            if nome_funcao == "main":
+                encontrou_main = True
+
+        if not encontrou_main:
+            self.erro("Esperava ao menos uma função 'main'")
+
         self.consumir(TokenType.EOF)
         return True
 
@@ -92,14 +118,23 @@ class AnalisadorSintatico:
             )
         )
 
-# Daqui pra frente são funções do PARSER
-
-    def function_(self) -> None:
+    def function_(self) -> tuple[str, int, int]:
         self.consumir(TokenType.FUNCTION, "Esperava 'bora_cumpade'")
-        self.consumir(TokenType.MAIN, "Esperava 'main'")
-        self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após main")
+
+        if self.verificar(TokenType.MAIN):
+            token_nome = self.avancar()
+        else:
+            token_nome = self.consumir(
+                TokenType.IDENTIFIER,
+                "Esperava nome da função (identificador) ou 'main'",
+            )
+
+        nome_funcao = token_nome.lexema
+
+        self.consumir(TokenType.LEFT_PAREN, f"Esperava '(' após {nome_funcao}")
         self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' após '('")
         self.bloco()
+        return nome_funcao, token_nome.linha, token_nome.coluna
 
     def type_(self) -> None:
         if not self.match(
