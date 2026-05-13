@@ -64,6 +64,7 @@ class TokenType(Enum):
     MINUS = auto()
     MULTIPLY = auto()
     DIVIDE = auto()
+    WHOLE_DIVISION = auto()
     MOD = auto()
 
     #Entrada e Saída
@@ -118,14 +119,8 @@ PALAVRAS_CHAVE = {
     "simbora" : TokenType.BEGIN_BLOCK,
     "cabo" : TokenType.END_BLOCK,
     "uai": TokenType.SEMICOLON,
-    ";": TokenType.SEMICOLON,
-    "," : TokenType.COMMA,
 
     # Operadores Relacionais
-    "<" : TokenType.LESS,
-    ">" : TokenType.GREATER,
-    "<=" : TokenType.LESS_EQUAL,
-    ">=" : TokenType.GREATER_EQUAL,
     "fica_assim_entao" : TokenType.ASSIGN,
     "neh_nada" : TokenType.NOT_EQUAL,
     "mema_coisa" : TokenType.EQUAL,
@@ -137,18 +132,14 @@ PALAVRAS_CHAVE = {
     "um_o_oto" : TokenType.XOR,
 
     #Operadores Aritméticos
-    "+" : TokenType.PLUS,
-    "-" : TokenType.MINUS,
     "veiz" : TokenType.MULTIPLY,
     "sob" : TokenType.DIVIDE,
-    "%" : TokenType.MOD,
 
     #Entrada e Saída
     "xove" : TokenType.INPUT,
     "oia_proce_ve" : TokenType.OUTPUT,  
 
     #Comentários
-    "//" : TokenType.INLINE_COMMENT,
     "causo" : TokenType.BEGIN_COMMENT,
     "fim_do_causo" : TokenType.END_COMMENT,
 }

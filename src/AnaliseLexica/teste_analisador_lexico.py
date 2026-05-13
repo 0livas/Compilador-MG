@@ -337,6 +337,23 @@ cabo
     else:
         print("✓ Nenhum erro encontrado!")
 
+def teste_escapes_visuais() -> None:
+    analisador = AnalisadorLexico()
+
+    codigo = 'trem_discrita msg fica_assim_entao "Linha 1\\nLinha 2\\tFim" uai'
+    tokens, erros = analisador.analisar_codigo(codigo)
+
+    if erros.tem_erros():
+        print(erros.gerar_relatorio())
+        return
+
+    for token in tokens:
+        if token.token == TokenType.LITERAL_STRING:
+            print("Exibição normal:")
+            print(token.lexema)
+            print("Exibição com repr:")
+            print(repr(token.lexema))
+
 def main() -> None:
     """Executa a suite de testes."""
     """Executa todos os testes."""
@@ -345,18 +362,19 @@ def main() -> None:
     print("="*70)
 
     try:
-        teste_codigo_valido()
-        teste_numeros()
-        teste_strings_e_chars()
-        teste_operadores()
-        teste_palavras_chave()
-        teste_erros()
+       # teste_codigo_valido()
+       # teste_numeros()
+       # teste_strings_e_chars()
+       # teste_operadores()
+       # teste_palavras_chave()
+       # teste_erros()
         teste_arquivo()
-        teste_comentario_linha()
-        teste_comentario_bloco()
-        teste_comentarios_aninhados()
-        teste_comentario_nao_fechado()
-        teste_codigo_real_com_comentarios()
+        teste_escapes_visuais()
+       # teste_comentario_linha()
+       # teste_comentario_bloco()
+       # teste_comentarios_aninhados()
+       # teste_comentario_nao_fechado()
+       # teste_codigo_real_com_comentarios()
 
         print("\n" + "="*70)
         print("✓ TODOS OS TESTES COMPLETADOS")

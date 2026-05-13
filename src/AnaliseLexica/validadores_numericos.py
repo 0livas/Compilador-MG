@@ -12,24 +12,35 @@ class TipoNumero(Enum):
 class ValidadorNumerico:
     """Valida e classifica números usando regex.
     
-    Suporta 4 bases/formatos:
-    - Decimal/Real: 42, 0, 30, .33 ...
+    Suporta 6 bases/formatos:
+    - Decimal: 42
     - Hexadecimal: 0xFF
-    - Octal: 01, 07, 017
+    - Octal: 0o77
+    - Binário: 0b1010
+    - Ponto flutuante: 3.14
+    - Notação científica: 1.5e-3
     """
 
     def __init__(self):
         self.padroes = {
             TipoNumero.INTEIRO_HEXADECIMAL: re.compile(r"^0[xX][0-9A-Fa-f]+$"),
             TipoNumero.INTEIRO_OCTAL: re.compile(r"^0[0-7]+$"),
-            TipoNumero.PONTO_FLUTUANTE: re.compile(r"^(\d+\.\d+|\.\d+)$"),
-            TipoNumero.INTEIRO_DECIMAL: re.compile(r"^(0|[1-9]\d*)$"),
+            TipoNumero.PONTO_FLUTUANTE: re.compile(r"^(?:\d+\.\d*|\.\d+)$"),
+            TipoNumero.INTEIRO_DECIMAL: re.compile(r"^(?:0|[1-9]\d*)$"),
         }
+
+    def normalizar_numero(self, lexema: str) -> str:
+        """Normaliza formatos numéricos aceitos pela linguagem."""
+        if re.match(r"^\d+\.$", lexema):
+            return lexema + "0"
+        return lexema
 
     def validar_numero(self, lexema: str) -> tuple[bool, TipoNumero | None]:
         """Valida e classifica um número. Testa padrões em ordem específica."""
         if not lexema:
             return False, None
+
+        lexema = self.normalizar_numero(lexema)
 
         ordem_validacao = [
             TipoNumero.INTEIRO_HEXADECIMAL,
