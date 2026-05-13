@@ -5,12 +5,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from AnaliseLexica.analisador_lexico import AnalisadorLexico
 from AnaliseSintatica.analisador_sintatico import AnalisadorSintatico, ExcecaoSintatica
+from AnaliseSintatica.gerador_quadruplas import GeradorQuadruplas
 
 
 def main(): 
-    caminho = str(
-        Path(__file__).resolve().parent.parent.parent / "Mineirês" / "exemplo1.uai"
-    )
+    caminho = str(Path(__file__).resolve().parent.parent.parent / "Mineirês" / "exemplo1.uai")
 
     lexico = AnalisadorLexico()
     tokens, erros_lexicos = lexico.analisar_arquivo(caminho)
@@ -26,8 +25,16 @@ def main():
     sintatico = AnalisadorSintatico(tokens)
 
     try:
-        sintatico.analisar()
+        programa = sintatico.analisar()
         print("✓ Sintaxe válida")
+
+        gerador = GeradorQuadruplas()
+        gerador.gerar(programa)
+
+        print("\nAST montada com sucesso.")
+        print(f"Funções encontradas: {len(programa.functions)}")
+        print("\nQUADRUPLAS GERADAS:")
+        print(gerador.formatar())
     except ExcecaoSintatica as e:
         print("ERRO SINTÁTICO ENCONTRADO:")
         print(e)
