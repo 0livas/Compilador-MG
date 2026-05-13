@@ -28,6 +28,8 @@ def main():
     try:
         sintatico.analisar()
         print("✓ Sintaxe válida")
+        print("BLOCOS INTERMEDIÁRIOS GERADOS:")
+        sintatico.gerador.imprimir()
     except ExcecaoSintatica as e:
         print("ERRO SINTÁTICO ENCONTRADO:")
         print(e)

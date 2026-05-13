@@ -1,29 +1,7 @@
 bora_cumpade main()
 simbora
-    trem_di_numeru i uai
-    i fica_assim_entao 0 uai
-
-    roda_esse_trem (i; i < 10; i fica_assim_entao i + 1) simbora
-        trem_di_numeru a fica_assim_entao 10 uai
-    cabo
-
-    trem_discrita msg fica_assim_entao "Linha 1\nLinha 2\tFim" uai
-    trosso quebra fica_assim_entao '\n' uai
-    oia_proce_ve("Mensagem:", msg) uai
-
-    dependenu (opcao) simbora
-        du_casu 1:
-            oia_proce_ve("Você escolheu a opção 1")uai
-            para_o_trem uai
-        
-        du_casu 2:
-            oia_proce_ve("Você escolheu a opção 2")uai
-            para_o_trem uai
-
-        uai_so:
-            oia_proce_ve("Opção inválida! Escolha entre 1 e 2! \n")uai
-            para_o_trem uai
-    cabo
-
-    ta_bao 0 uai
+    trem_di_numeru a fica_assim_entao 2 uai
+    trem_di_numeru b fica_assim_entao 3 uai
+    trem_di_numeru x fica_assim_entao a + b veiz 4 uai
+    ta_bao x uai
 cabo
