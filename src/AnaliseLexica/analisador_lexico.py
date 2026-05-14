@@ -298,14 +298,14 @@ class AnalisadorLexico:
         coluna_inicio = self.coluna_atual
         linha_inicio = self.linha_atual
 
-        lexema = self._extrair_lexema_numero()
-        lexema = self.validador_numerico.normalizar_numero(lexema)
+        lexema_bruto = self._extrair_lexema_numero()
+        lexema_normalizado = self.validador_numerico.normalizar_numero(lexema_bruto)
 
-        eh_valido, tipo_numero = self.validador_numerico.validar_numero(lexema)
+        eh_valido, tipo_numero = self.validador_numerico.validar_numero(lexema_normalizado)
 
         if not eh_valido:
             self.gerenciador_erros.registrar_numero_invalido(
-                lexema,
+                lexema_bruto,
                 linha_inicio,
                 coluna_inicio,
                 "sequência numérica inválida",
@@ -316,7 +316,7 @@ class AnalisadorLexico:
 
         self.tokens.append(
             Token(
-                lexema=lexema,
+                lexema=lexema_normalizado,
                 token=token_type,
                 linha=linha_inicio,
                 coluna=coluna_inicio,

@@ -33,6 +33,8 @@ class ValidadorNumerico:
         """Normaliza formatos numéricos aceitos pela linguagem."""
         if re.match(r"^\d+\.$", lexema):
             return lexema + "0"
+        if re.match(r"^\.\d+$", lexema):
+            return "0" + lexema
         return lexema
 
     def validar_numero(self, lexema: str) -> tuple[bool, TipoNumero | None]:
