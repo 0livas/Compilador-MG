@@ -63,6 +63,24 @@ class AnalisadorSintatico:
         self.tokens = tokens
         self.posicao = 0
         self.programa: Program | None = None
+        self._stmt_callbacks = {
+            TokenType.FOR: self.for_stmt,
+            TokenType.INPUT: self.io_stmt,
+            TokenType.OUTPUT: self.io_stmt,
+            TokenType.WHILE: self.while_stmt,
+            TokenType.IF: self.if_stmt,
+            TokenType.SWITCH: self.case_stmt,
+            TokenType.BEGIN_BLOCK: self.bloco,
+            TokenType.BREAK: self._break_stmt,
+            TokenType.CONTINUE: self._continue_stmt,
+            TokenType.RETURN: self._return_stmt,
+            TokenType.SEMICOLON: self._empty_stmt,
+            TokenType.TYPE_INT: self.declaration,
+            TokenType.TYPE_FLOAT: self.declaration,
+            TokenType.TYPE_STRING: self.declaration,
+            TokenType.TYPE_BOOLEAN: self.declaration,
+            TokenType.TYPE_CHAR: self.declaration,
+        }
 
     def analisar(self) -> Program:
         programa = self.programa_()
@@ -215,49 +233,34 @@ class AnalisadorSintatico:
         }
 
     def stmt(self) -> Statement:
-        if self.verificar(TokenType.FOR):
-            return self.for_stmt()
-        if self.verificar(TokenType.INPUT) or self.verificar(TokenType.OUTPUT):
-            return self.io_stmt()
-        if self.verificar(TokenType.WHILE):
-            return self.while_stmt()
-        if self.verificar(TokenType.IF):
-            return self.if_stmt()
-        if self.verificar(TokenType.SWITCH):
-            return self.case_stmt()
-        if self.verificar(TokenType.BEGIN_BLOCK):
-            return self.bloco()
-        if self.verificar(TokenType.BREAK):
-            self.avancar()
-            self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após 'para_o_trem'")
-            return BreakStmt()
-        if self.verificar(TokenType.CONTINUE):
-            self.avancar()
-            self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após 'toca_o_trem'")
-            return ContinueStmt()
-        if self.verificar(TokenType.RETURN):
-            self.avancar()
-            value = self.expr()
-            self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após retorno")
-            return ReturnStmt(value)
-        if self.verificar(TokenType.SEMICOLON):
-            self.avancar()
-            return EmptyStmt()
-
-        if self.verificar(TokenType.TYPE_INT):
-            return self.declaration()
-        if self.verificar(TokenType.TYPE_FLOAT):
-            return self.declaration()
-        if self.verificar(TokenType.TYPE_STRING):
-            return self.declaration()
-        if self.verificar(TokenType.TYPE_BOOLEAN):
-            return self.declaration()
-        if self.verificar(TokenType.TYPE_CHAR):
-            return self.declaration()
+        token_type = self.atual().token
+        callback = self._stmt_callbacks.get(token_type)
+        if callback is not None:
+            return callback()
 
         expression = self.expr()
         self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após atribuição")
         return self._expressao_para_stmt(expression)
+
+    def _break_stmt(self) -> BreakStmt:
+        self.avancar()
+        self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após 'para_o_trem'")
+        return BreakStmt()
+
+    def _continue_stmt(self) -> ContinueStmt:
+        self.avancar()
+        self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após 'toca_o_trem'")
+        return ContinueStmt()
+
+    def _return_stmt(self) -> ReturnStmt:
+        self.avancar()
+        value = self.expr()
+        self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após retorno")
+        return ReturnStmt(value)
+
+    def _empty_stmt(self) -> EmptyStmt:
+        self.avancar()
+        return EmptyStmt()
 
     def _expressao_para_stmt(self, expression: Expression) -> Statement:
         if isinstance(expression, AssignmentExpr):
