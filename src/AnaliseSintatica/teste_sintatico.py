@@ -27,14 +27,8 @@ def main():
     try:
         programa = sintatico.analisar()
         print("✓ Sintaxe válida")
-
-        gerador = GeradorQuadruplas()
-        gerador.gerar(programa)
-
-        print("\nAST montada com sucesso.")
-        print(f"Funções encontradas: {len(programa.functions)}")
-        print("\nQUADRUPLAS GERADAS:")
-        print(gerador.formatar())
+        print("BLOCOS INTERMEDIÁRIOS GERADOS:")
+        sintatico.gerador.imprimir()
     except ExcecaoSintatica as e:
         print("ERRO SINTÁTICO ENCONTRADO:")
         print(e)

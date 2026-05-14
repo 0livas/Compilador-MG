@@ -1,4 +1,3 @@
-from pathlib import Path
 from .mineires_token import Token
 from .tokenType import TokenType
 from .gerenciador_tokens import GerenciadorTokens
@@ -162,6 +161,14 @@ class AnalisadorLexico:
         self.coluna_atual += 1
 
         lexema = ""
+        escape_map = {
+            "n": "\n",
+            "t": "\t",
+            "r": "\r",
+            "\\": "\\",
+            "'": "'",
+            '"': '"',
+        }
 
         while self.posicao < len(self.codigo):
             char = self.codigo[self.posicao]
@@ -178,19 +185,16 @@ class AnalisadorLexico:
             if char == "\\":
                 if self.posicao + 1 < len(self.codigo):
                     proximo = self.codigo[self.posicao + 1]
-                    if proximo in "ntr\\'\"":
-                        escape_map = {
-                            "n": "\n",
-                            "t": "\t",
-                            "r": "\r",
-                            "\\": "\\",
-                            "'": "'",
-                            '"': '"',
-                        }
+                    if proximo in escape_map:
                         lexema += escape_map[proximo]
                         self.posicao += 2
                         self.coluna_atual += 2
                         continue
+
+                lexema += "\\"
+                self.posicao += 1
+                self.coluna_atual += 1
+                continue
 
             if char == '"':
                 self.posicao += 1
@@ -240,19 +244,19 @@ class AnalisadorLexico:
             return
 
         lexema = ""
+        escape_map = {
+            "n": "\n",
+            "t": "\t",
+            "r": "\r",
+            "\\": "\\",
+            "'": "'",
+            '"': '"',
+        }
 
         if char == "\\":
             if self.posicao + 1 < len(self.codigo):
                 proximo = self.codigo[self.posicao + 1]
-                if proximo in "ntr\\'\"":
-                    escape_map = {
-                        "n": "\n",
-                        "t": "\t",
-                        "r": "\r",
-                        "\\": "\\",
-                        "'": "'",
-                        '"': '"',
-                    }
+                if proximo in escape_map:
                     lexema = escape_map[proximo]
                     self.posicao += 2
                     self.coluna_atual += 2
@@ -294,13 +298,14 @@ class AnalisadorLexico:
         coluna_inicio = self.coluna_atual
         linha_inicio = self.linha_atual
 
-        lexema = self._extrair_lexema_numero()
+        lexema_bruto = self._extrair_lexema_numero()
+        lexema_normalizado = self.validador_numerico.normalizar_numero(lexema_bruto)
 
-        eh_valido, tipo_numero = self.validador_numerico.validar_numero(lexema)
+        eh_valido, tipo_numero = self.validador_numerico.validar_numero(lexema_normalizado)
 
         if not eh_valido:
             self.gerenciador_erros.registrar_numero_invalido(
-                lexema,
+                lexema_bruto,
                 linha_inicio,
                 coluna_inicio,
                 "sequência numérica inválida",
@@ -311,7 +316,7 @@ class AnalisadorLexico:
 
         self.tokens.append(
             Token(
-                lexema=lexema,
+                lexema=lexema_normalizado,
                 token=token_type,
                 linha=linha_inicio,
                 coluna=coluna_inicio,
@@ -319,7 +324,6 @@ class AnalisadorLexico:
         )
 
     def _extrair_lexema_numero(self) -> str:
-    
         lexema = ""
 
         if self.posicao < len(self.codigo) and self.codigo[self.posicao] == ".":
@@ -328,6 +332,13 @@ class AnalisadorLexico:
             self.coluna_atual += 1
 
             while self.posicao < len(self.codigo) and self.codigo[self.posicao].isdigit():
+                lexema += self.codigo[self.posicao]
+                self.posicao += 1
+                self.coluna_atual += 1
+
+            while self.posicao < len(self.codigo) and (
+                self.codigo[self.posicao].isdigit() or self.codigo[self.posicao] == "."
+            ):
                 lexema += self.codigo[self.posicao]
                 self.posicao += 1
                 self.coluna_atual += 1
@@ -344,11 +355,8 @@ class AnalisadorLexico:
                 self.posicao += 1
                 self.coluna_atual += 1
 
-                while self.posicao < len(self.codigo):
-                    char = self.codigo[self.posicao]
-                    if not (char.isdigit() or char in "abcdefABCDEF"):
-                        break
-                    lexema += char
+                while self.posicao < len(self.codigo) and self.codigo[self.posicao].isalnum():
+                    lexema += self.codigo[self.posicao]
                     self.posicao += 1
                     self.coluna_atual += 1
 
@@ -369,6 +377,13 @@ class AnalisadorLexico:
                     self.posicao += 1
                     self.coluna_atual += 1
 
+                while self.posicao < len(self.codigo) and (
+                    self.codigo[self.posicao].isdigit() or self.codigo[self.posicao] == "."
+                ):
+                    lexema += self.codigo[self.posicao]
+                    self.posicao += 1
+                    self.coluna_atual += 1
+
             return lexema
 
         while self.posicao < len(self.codigo) and self.codigo[self.posicao].isdigit():
@@ -382,6 +397,13 @@ class AnalisadorLexico:
             self.coluna_atual += 1
 
             while self.posicao < len(self.codigo) and self.codigo[self.posicao].isdigit():
+                lexema += self.codigo[self.posicao]
+                self.posicao += 1
+                self.coluna_atual += 1
+
+            while self.posicao < len(self.codigo) and (
+                self.codigo[self.posicao].isdigit() or self.codigo[self.posicao] == "."
+            ):
                 lexema += self.codigo[self.posicao]
                 self.posicao += 1
                 self.coluna_atual += 1
@@ -406,23 +428,26 @@ class AnalisadorLexico:
             self.posicao += 1
             self.coluna_atual += 1
 
-        if lexema.lower() == "causo":
+        lexema_lower = lexema.lower()
+
+        if lexema_lower == "causo":
             self._processar_comentario_bloco_mineiro(coluna_inicio, linha_inicio)
+            return
+
+        if lexema_lower == "fim_do_causo":
+            self.gerenciador_erros.registrar_erro_customizado(
+                tipo="fechamento de comentário inválido",
+                mensagem="'fim_do_causo' encontrado sem um 'causo' correspondente",
+                linha=linha_inicio,
+                coluna=coluna_inicio,
+                lexema=lexema,
+                sugestao="Remova 'fim_do_causo' ou abra um comentário com 'causo'",
+            )
             return
 
         token_type = self.gerenciador_tokens.buscar_palavra_chave(lexema)
 
         if token_type is None:
-            sugestao_keyword = self.gerenciador_tokens.sugerir_palavra_chave_proxima(lexema)
-            if sugestao_keyword is not None:
-                self.gerenciador_erros.registrar_erro_customizado(
-                    tipo="possível typo de palavra-chave",
-                    mensagem=f"Identificador '{lexema}' é semelhante a uma palavra-chave da linguagem",
-                    linha=linha_inicio,
-                    coluna=coluna_inicio,
-                    lexema=lexema,
-                    sugestao=f"Você quis dizer '{sugestao_keyword}'?",
-                )
             token_type = TokenType.IDENTIFIER
 
         if token_type not in (TokenType.BEGIN_COMMENT, TokenType.END_COMMENT, TokenType.INLINE_COMMENT):

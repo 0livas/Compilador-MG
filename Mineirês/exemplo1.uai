@@ -4,7 +4,7 @@ simbora
     trem_di_numeru j fica_assim_entao 0 uai
     trem_cum_virgula x fica_assim_entao 3.14 uai
     trem_discrita mensagem fica_assim_entao "Olá Minerês!" uai
-        
+    
     uai_se (i < 10) simbora
         oia_proce_ve("Número: ", i) uai
     cabo
@@ -13,25 +13,13 @@ simbora
         oia_proce_ve("teste do for Numero: ", j) uai
     cabo
 
-    trem_di_numeru opcao fica_assim_entao 0 uai
-    oia_proce_ve("Digite um Numero (1 - 2): ")uai
-    xove(opcao) uai
+    trem_discrita msg fica_assim_entao "Linha 1\nLinha 2\tFim" uai
+    trosso quebra fica_assim_entao '\n' uai
+    oia_proce_ve("Mensagem:", msg) uai
 
-    dependenu (opcao) simbora
-        du_casu 1:
-            oia_proce_ve("Você escolheu a opção 1")uai
-            para_o_trem uai
-        
-        du_casu 2:
-            oia_proce_ve("Você escolheu a opção 2")uai
-            para_o_trem uai
-
-        uai_so:
-            oia_proce_ve("Opção inválida! Escolha entre 1 e 2! \n")uai
-            para_o_trem uai
-    cabo
-
-    enquanto_tiver_trem (x > 0) simbora
-        x fica_assim_entao x - 0.5 uai
-    cabo
+    trem_di_numeru x fica_assim_entao msg + i uai
+    1.
+    .0
+    .3
+    ta_bao 0 uai
 cabo

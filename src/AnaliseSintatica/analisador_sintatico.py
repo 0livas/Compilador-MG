@@ -5,35 +5,8 @@ from typing import Optional
 
 from AnaliseLexica.mineires_token import Token
 from AnaliseLexica.tokenType import TokenType
-
-from .nos_ast import (
-    AssignmentExpr,
-    AssignmentStmt,
-    BinaryExpr,
-    Block,
-    BreakStmt,
-    ContinueStmt,
-    Declaration,
-    DeclarationItem,
-    EmptyStmt,
-    Expression,
-    ExpressionStmt,
-    ForStmt,
-    FunctionDecl,
-    Identifier,
-    IfStmt,
-    InputStmt,
-    Literal,
-    OutputStmt,
-    Program,
-    ReturnStmt,
-    Statement,
-    SwitchCase,
-    SwitchStmt,
-    UnaryExpr,
-    WhileStmt,
-)
-
+from AnaliseLexica.gerenciador_tokens import GerenciadorTokens
+from Intermediario.gerador_intermediario import GeradorIntermediario
 
 @dataclass
 class ErroSintatico:
@@ -62,43 +35,11 @@ class AnalisadorSintatico:
     def __init__(self, tokens: list[Token]):
         self.tokens = tokens
         self.posicao = 0
-        self.programa: Program | None = None
-        self._stmt_callbacks = {
-            TokenType.FOR: self.for_stmt,
-            TokenType.INPUT: self.io_stmt,
-            TokenType.OUTPUT: self.io_stmt,
-            TokenType.WHILE: self.while_stmt,
-            TokenType.IF: self.if_stmt,
-            TokenType.SWITCH: self.case_stmt,
-            TokenType.BEGIN_BLOCK: self.bloco,
-            TokenType.BREAK: self._break_stmt,
-            TokenType.CONTINUE: self._continue_stmt,
-            TokenType.RETURN: self._return_stmt,
-            TokenType.SEMICOLON: self._empty_stmt,
-            TokenType.TYPE_INT: self.declaration,
-            TokenType.TYPE_FLOAT: self.declaration,
-            TokenType.TYPE_STRING: self.declaration,
-            TokenType.TYPE_BOOLEAN: self.declaration,
-            TokenType.TYPE_CHAR: self.declaration,
-        }
+        self.gerenciador_tokens = GerenciadorTokens()
+        self.gerador = GeradorIntermediario()
 
-    def analisar(self) -> Program:
-        programa = self.programa_()
-        self.programa = programa
-        return programa
-
-    def programa_(self) -> Program:
-        funcoes: list[FunctionDecl] = []
-
-        if not self.verificar(TokenType.FUNCTION):
-            self.erro("Esperava declaração de função iniciando com 'bora_cumpade'")
-
-        while self.verificar(TokenType.FUNCTION):
-            funcoes.append(self.function_())
-
-        if not any(funcao.name == "main" for funcao in funcoes):
-            self.erro("Esperava ao menos uma função 'main'")
-
+    def analisar(self) -> bool:
+        self.function_list()
         self.consumir(TokenType.EOF)
         return Program(funcoes)
 
@@ -136,44 +77,132 @@ class AnalisadorSintatico:
             return self.avancar()
 
         token = self.atual()
+        sugestao = self.sugestao_para_token_atual()
+
+        encontrado = f"{token.token.name} ('{token.lexema}')"
+        if sugestao:
+            encontrado += f" | talvez você quis dizer '{sugestao}'"
+
         raise ExcecaoSintatica(
             ErroSintatico(
                 mensagem=mensagem or "Token inesperado",
                 linha=token.linha,
                 coluna=token.coluna,
                 esperado=tipo.name,
-                encontrado=f"{token.token.name} ('{token.lexema}')",
+                encontrado=encontrado,
             )
         )
 
+    def consumir_uai(self, mensagem: str) -> Token:
+        token = self.consumir(TokenType.SEMICOLON, mensagem)
+        if token.lexema != "uai":
+            raise ExcecaoSintatica(
+                ErroSintatico(
+                    mensagem=mensagem,
+                    linha=token.linha,
+                    coluna=token.coluna,
+                    esperado="uai",
+                    encontrado=f"{token.token.name} ('{token.lexema}')",
+                )
+            )
+        return token
+
+    def consumir_ponto_virgula_for(self, mensagem: str) -> Token:
+        token = self.consumir(TokenType.SEMICOLON, mensagem)
+        if token.lexema != ";":
+            raise ExcecaoSintatica(
+                ErroSintatico(
+                    mensagem=mensagem,
+                    linha=token.linha,
+                    coluna=token.coluna,
+                    esperado=";",
+                    encontrado=f"{token.token.name} ('{token.lexema}')",
+                )
+            )
+        return token
+
+    def sugestao_para_token_atual(self) -> str | None:
+        token = self.atual()
+        if token.token != TokenType.IDENTIFIER:
+            return None
+        return self.gerenciador_tokens.sugerir_palavra_chave(token.lexema)
+    
+    def verificar_keyword_parecida_no_inicio_stmt(self) -> None:
+        token = self.atual()
+
+        if token.token != TokenType.IDENTIFIER:
+            return
+
+        sugestao = self.gerenciador_tokens.sugerir_palavra_chave(token.lexema)
+        if not sugestao:
+            return
+
+        keywords_inicio_stmt = {
+            "trem_di_numeru",
+            "trem_cum_virgula",
+            "trem_discrita",
+            "trem_discolhe",
+            "trosso",
+            "uai_se",
+            "uai_senao",
+            "roda_esse_trem",
+            "enquanto_tiver_trem",
+            "dependenu",
+            "xove",
+            "oia_proce_ve",
+            "ta_bao",
+            "para_o_trem",
+            "toca_o_trem",
+            "simbora",
+        }
+
+        if sugestao in keywords_inicio_stmt:
+            raise ExcecaoSintatica(
+                ErroSintatico(
+                    mensagem="Palavra-chave inválida no início do comando",
+                    linha=token.linha,
+                    coluna=token.coluna,
+                    esperado="uma palavra-chave válida da linguagem",
+                    encontrado=f"{token.token.name} ('{token.lexema}') | talvez você quis dizer '{sugestao}'",
+                )
+            )
+
     def erro(self, mensagem: str) -> None:
         token = self.atual()
+        sugestao = self.sugestao_para_token_atual()
+
+        encontrado = f"{token.token.name} ('{token.lexema}')"
+        if sugestao:
+            encontrado += f" | talvez você quis dizer '{sugestao}'"
+
         raise ExcecaoSintatica(
             ErroSintatico(
                 mensagem=mensagem,
                 linha=token.linha,
                 coluna=token.coluna,
-                encontrado=f"{token.token.name} ('{token.lexema}')",
+                encontrado=encontrado,
             )
         )
 
-    def function_(self) -> FunctionDecl:
-        self.consumir(TokenType.FUNCTION, "Esperava 'bora_cumpade'")
+    def function_list(self) -> None:
+        while self.verificar(TokenType.FUNCTION):
+            self.function_()
 
+    def nome_funcao(self) -> Token:
         if self.verificar(TokenType.MAIN):
-            token_nome = self.avancar()
-        else:
-            token_nome = self.consumir(
-                TokenType.IDENTIFIER,
-                "Esperava nome da função (identificador) ou 'main'",
-            )
+            return self.avancar()
 
-        nome_funcao = token_nome.lexema
+        return self.consumir(
+            TokenType.IDENTIFIER,
+            "Esperava o nome da função"
+        )
 
-        self.consumir(TokenType.LEFT_PAREN, f"Esperava '(' após {nome_funcao}")
+    def function_(self) -> None:
+        self.consumir(TokenType.FUNCTION, "Esperava 'bora_cumpade'")
+        self.nome_funcao()
+        self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após o nome da função")
         self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' após '('")
-        corpo = self.bloco()
-        return FunctionDecl(nome_funcao, corpo)
+        self.bloco()
 
     def type_(self) -> str:
         token = self.atual()
@@ -232,68 +261,65 @@ class AnalisadorSintatico:
             TokenType.FALSE,
         }
 
-    def stmt(self) -> Statement:
-        token_type = self.atual().token
-        callback = self._stmt_callbacks.get(token_type)
-        if callback is not None:
-            return callback()
+    def stmt(self) -> None:
+        if self.verificar(TokenType.FOR):
+            self.for_stmt()
+        elif self.verificar(TokenType.INPUT) or self.verificar(TokenType.OUTPUT):
+            self.io_stmt()
+        elif self.verificar(TokenType.WHILE):
+            self.while_stmt()
+        elif self.verificar(TokenType.IF):
+            self.if_stmt()
+        elif self.verificar(TokenType.SWITCH):
+            self.case_stmt()
+        elif self.verificar(TokenType.BEGIN_BLOCK):
+            self.bloco()
+        elif self.verificar(TokenType.BREAK):
+            self.avancar()
+            self.consumir_uai("Esperava 'uai' após 'para_o_trem'")
+        elif self.verificar(TokenType.CONTINUE):
+            self.avancar()
+            self.consumir_uai("Esperava 'uai' após 'toca_o_trem'")
+        elif self.verificar(TokenType.RETURN):
+            self.avancar()
+            valor = self.expr()
+            self.consumir_uai("Esperava 'uai' após retorno")
+            self.gerador.adicionar("ret", valor, None, None)
+        elif self.verificar(TokenType.SEMICOLON):
+            self.consumir_uai("Esperava 'uai'")
+        elif self.atual().token in {
+            TokenType.TYPE_INT,
+            TokenType.TYPE_FLOAT,
+            TokenType.TYPE_STRING,
+            TokenType.TYPE_BOOLEAN,
+            TokenType.TYPE_CHAR,
+        }:
+            self.declaration()
+        else:
+            self.verificar_keyword_parecida_no_inicio_stmt()
+            self.atrib()
+            self.consumir_uai("Esperava 'uai' após atribuição")
 
-        expression = self.expr()
-        self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após atribuição")
-        return self._expressao_para_stmt(expression)
+    # descricao das instrucoes
 
-    def _break_stmt(self) -> BreakStmt:
-        self.avancar()
-        self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após 'para_o_trem'")
-        return BreakStmt()
-
-    def _continue_stmt(self) -> ContinueStmt:
-        self.avancar()
-        self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após 'toca_o_trem'")
-        return ContinueStmt()
-
-    def _return_stmt(self) -> ReturnStmt:
-        self.avancar()
-        value = self.expr()
-        self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após retorno")
-        return ReturnStmt(value)
-
-    def _empty_stmt(self) -> EmptyStmt:
-        self.avancar()
-        return EmptyStmt()
-
-    def _expressao_para_stmt(self, expression: Expression) -> Statement:
-        if isinstance(expression, AssignmentExpr):
-            return AssignmentStmt(expression.target, expression.value)
-        return ExpressionStmt(expression)
-
-    def for_declaration(self) -> Declaration:
-        return self.declaration(require_semicolon=False)
-
-    def declaration(self, require_semicolon: bool = True) -> Declaration:
-        tipo = self.type_()
-        items = [self.decl_item()]
+    def declaration(self) -> None:
+        self.type_()
+        self.decl_item()
         while self.match(TokenType.COMMA):
-            items.append(self.decl_item())
+            self.decl_item()
+        self.consumir_uai("Esperava 'uai' após declaração")
 
-        if require_semicolon:
-            self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após declaração")
-        return Declaration(tipo, items)
-
-    def decl_item(self) -> DeclarationItem:
-        token_nome = self.consumir(TokenType.IDENTIFIER, "Esperava identificador")
-        initializer = None
-
+    def decl_item(self) -> None:
+        identificador = self.consumir(TokenType.IDENTIFIER, "Esperava identificador").lexema
         if self.match(TokenType.ASSIGN):
-            initializer = self.expr()
+            valor = self.expr()
+            self.gerador.adicionar("att", identificador, valor, None)
 
-        return DeclarationItem(token_nome.lexema, initializer)
-
-    def ident_list(self) -> list[str]:
-        identifiers = [self.consumir(TokenType.IDENTIFIER, "Esperava identificador").lexema]
+    def for_declaration(self) -> None:
+        self.type_()
+        self.decl_item()
         while self.match(TokenType.COMMA):
-            identifiers.append(self.consumir(TokenType.IDENTIFIER, "Esperava identificador após ','").lexema)
-        return identifiers
+            self.decl_item()
 
     def for_stmt(self) -> ForStmt:
         self.consumir(TokenType.FOR, "Esperava 'roda_esse_trem'")
@@ -310,13 +336,13 @@ class AnalisadorSintatico:
             }:
                 init = self.for_declaration()
             else:
-                init = self._expressao_para_stmt(self.expr())
-        self.consumir(TokenType.SEMICOLON, "Esperava separador do for")
+                self.atrib()
+        self.consumir_ponto_virgula_for("Esperava ';' como separador do for")
 
         condition = None
         if not self.verificar(TokenType.SEMICOLON):
-            condition = self.expr()
-        self.consumir(TokenType.SEMICOLON, "Esperava separador do for")
+            self.expr()
+        self.consumir_ponto_virgula_for("Esperava ';' como separador do for")
 
         update = None
         if not self.verificar(TokenType.RIGHT_PAREN):
@@ -329,39 +355,35 @@ class AnalisadorSintatico:
     def io_stmt(self) -> Statement:
         if self.match(TokenType.INPUT):
             self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após 'xove'")
-            tipo = ""
-            if self.atual().token in {
-                TokenType.TYPE_INT,
-                TokenType.TYPE_FLOAT,
-                TokenType.TYPE_STRING,
-                TokenType.TYPE_BOOLEAN,
-                TokenType.TYPE_CHAR,
-            }:
-                tipo = self.type_()
-                self.consumir(TokenType.COMMA, "Esperava ',' em xove")
-            token_nome = self.consumir(TokenType.IDENTIFIER, "Esperava identificador em xove")
+            self.type_()
+            self.consumir(TokenType.COMMA, "Esperava ',' em xove")
+            identificador = self.consumir(TokenType.IDENTIFIER, "Esperava identificador em xove").lexema
             self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' em xove")
-            self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após xove")
-            return InputStmt(tipo, token_nome.lexema)
+            self.consumir_uai("Esperava 'uai' após xove")
+            self.gerador.adicionar("call", "read", identificador, None)
+            return
 
         if self.match(TokenType.OUTPUT):
             self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após 'oia_proce_ve'")
-            values = self.out_list()
+            valores = self.out_list()
             self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' em oia_proce_ve")
-            self.consumir(TokenType.SEMICOLON, "Esperava 'uai' após saída")
-            return OutputStmt(values)
+            self.consumir_uai("Esperava 'uai' após saída")
+
+            for valor in valores:
+                self.gerador.adicionar("call", "print", valor, None)
+            return
 
         self.erro("Esperava comando de entrada ou saída")
         return EmptyStmt()
 
-    def out_list(self) -> list[Expression]:
-        values = [self.out()]
+    def out_list(self) -> list[str]:
+        valores = [self.out()]
         while self.match(TokenType.COMMA):
-            values.append(self.out())
-        return values
+            valores.append(self.out())
+        return valores
 
-    def out(self) -> Expression:
-        return self.expr()
+    def out(self) -> str:
+        return self.fator_zin()
 
     def while_stmt(self) -> WhileStmt:
         self.consumir(TokenType.WHILE, "Esperava 'enquanto_tiver_trem'")
@@ -394,73 +416,101 @@ class AnalisadorSintatico:
 
         while not self.esta_no_fim() and not self.verificar(TokenType.END_BLOCK):
             if self.verificar(TokenType.CASE):
-                cases.append(self.do_caso())
-                continue
+                self.do_caso()
+            else:
+                self.default_case()
 
-            if self.verificar(TokenType.DEFAULT):
-                if default_statements is not None:
-                    self.erro("Encontrado mais de um 'uai_so' no switch")
-                self.consumir(TokenType.DEFAULT, "Esperava 'uai_so'")
-                self.consumir(TokenType.COLON, "Esperava ':' após uai_so")
-                default_statements = self.stmt_list({TokenType.END_BLOCK})
-                continue
-
-            self.erro("Esperava 'du_casu' ou 'uai_so' no switch")
-
-        self.consumir(TokenType.END_BLOCK, "Esperava 'cabo' no switch")
-        return SwitchStmt(expression, cases, default_statements)
+    def corpo_case(self) -> None:
+        while (
+            self.inicio_de_stmt()
+            and not self.verificar(TokenType.CASE)
+            and not self.verificar(TokenType.DEFAULT)
+            and not self.verificar(TokenType.END_BLOCK)
+        ):
+            self.stmt()
 
     def do_caso(self) -> SwitchCase:
         self.consumir(TokenType.CASE, "Esperava 'du_casu'")
         value = self.expr()
         self.consumir(TokenType.COLON, "Esperava ':' após valor do caso")
-        statements = self.stmt_list({TokenType.CASE, TokenType.DEFAULT, TokenType.END_BLOCK})
-        return SwitchCase(value, statements)
+        self.corpo_case()
 
-    def expr(self) -> Expression:
+    def default_case(self) -> None:
+        self.consumir(TokenType.DEFAULT, "Esperava 'uai_so'")
+        self.consumir(TokenType.COLON, "Esperava ':' após uai_so")
+        self.corpo_case()
+
+   
+    # expressoes
+
+    def expr(self) -> str:
         return self.atrib()
 
-    def atrib(self) -> Expression:
-        left = self.or_()
+    def atrib(self) -> str:
+        esquerda = self.or_()
+
         if self.match(TokenType.ASSIGN):
-            if not isinstance(left, Identifier):
-                self.erro("Esperava identificador à esquerda de atribuição")
-            value = self.atrib()
-            return AssignmentExpr(left, value)
-        return left
+            if not self.variavel_valida_para_atribuicao(esquerda):
+                self.erro("Lado esquerdo da atribuição inválido")
 
-    def or_(self) -> Expression:
-        expression = self.xor()
+            valor = self.atrib()
+            self.gerador.adicionar("att", esquerda, valor, None)
+            return esquerda
+
+        return esquerda
+    
+    def variavel_valida_para_atribuicao(self, nome: str) -> bool:
+        if not nome:
+            return False
+        if nome.startswith("t"):
+            return True
+        return nome.isidentifier()
+
+    def or_(self) -> str:
+        esquerda = self.xor()
+
         while self.match(TokenType.OR):
-            operator = self.anterior().token.name
-            right = self.xor()
-            expression = BinaryExpr(operator, expression, right)
-        return expression
+            direita = self.xor()
+            temp = self.gerador.nova_temp()
+            self.gerador.adicionar("or", temp, esquerda, direita)
+            esquerda = temp
 
-    def xor(self) -> Expression:
-        expression = self.and_()
+        return esquerda
+
+    def xor(self) -> str:
+        esquerda = self.and_()
+
         while self.match(TokenType.XOR):
-            operator = self.anterior().token.name
-            right = self.and_()
-            expression = BinaryExpr(operator, expression, right)
-        return expression
+            direita = self.and_()
+            temp = self.gerador.nova_temp()
+            self.gerador.adicionar("xor", temp, esquerda, direita)
+            esquerda = temp
 
-    def and_(self) -> Expression:
-        expression = self.not_()
+        return esquerda
+
+    def and_(self) -> str:
+        esquerda = self.not_()
+
         while self.match(TokenType.AND):
-            operator = self.anterior().token.name
-            right = self.not_()
-            expression = BinaryExpr(operator, expression, right)
-        return expression
+            direita = self.not_()
+            temp = self.gerador.nova_temp()
+            self.gerador.adicionar("and", temp, esquerda, direita)
+            esquerda = temp
 
-    def not_(self) -> Expression:
+        return esquerda
+
+    def not_(self) -> str:
         if self.match(TokenType.NOT):
-            operator = self.anterior().token.name
-            return UnaryExpr(operator, self.not_())
+            op1 = self.not_()
+            temp = self.gerador.nova_temp()
+            self.gerador.adicionar("not", temp, op1, None)
+            return temp
+
         return self.rel()
 
-    def rel(self) -> Expression:
-        expression = self.add()
+    def rel(self) -> str:
+        esquerda = self.add()
+
         while self.match(
             TokenType.EQUAL,
             TokenType.NOT_EQUAL,
@@ -469,68 +519,111 @@ class AnalisadorSintatico:
             TokenType.GREATER,
             TokenType.GREATER_EQUAL,
         ):
-            operator = self.anterior().token.name
-            right = self.add()
-            expression = BinaryExpr(operator, expression, right)
-        return expression
+            operador_token = self.anterior().token
+            direita = self.add()
+            temp = self.gerador.nova_temp()
 
-    def add(self) -> Expression:
-        expression = self.mult()
+            mapa = {
+                TokenType.EQUAL: "eq",
+                TokenType.NOT_EQUAL: "dif",
+                TokenType.LESS: "less",
+                TokenType.LESS_EQUAL: "leq",
+                TokenType.GREATER: "gret",
+                TokenType.GREATER_EQUAL: "geq",
+            }
+
+            self.gerador.adicionar(mapa[operador_token], temp, esquerda, direita)
+            esquerda = temp
+
+        return esquerda
+
+    def add(self) -> str:
+        esquerda = self.mult()
+
         while self.match(TokenType.PLUS, TokenType.MINUS):
-            operator = self.anterior().token.name
-            right = self.mult()
-            expression = BinaryExpr(operator, expression, right)
-        return expression
+            operador_token = self.anterior().token
+            direita = self.mult()
+            temp = self.gerador.nova_temp()
 
-    def mult(self) -> Expression:
-        expression = self.uno()
-        while self.match(TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MOD):
-            operator = self.anterior().token.name
-            right = self.uno()
-            expression = BinaryExpr(operator, expression, right)
-        return expression
+            mapa = {
+                TokenType.PLUS: "add",
+                TokenType.MINUS: "sub",
+            }
 
-    def uno(self) -> Expression:
-        if self.match(TokenType.PLUS, TokenType.MINUS):
-            operator = self.anterior().token.name
-            return UnaryExpr(operator, self.uno())
+            self.gerador.adicionar(mapa[operador_token], temp, esquerda, direita)
+            esquerda = temp
+
+        return esquerda
+
+    def mult(self) -> str:
+        esquerda = self.uno()
+
+        while self.match(
+            TokenType.MULTIPLY,
+            TokenType.DIVIDE,
+            TokenType.WHOLE_DIVISION,
+            TokenType.MOD
+        ):
+            operador_token = self.anterior().token
+            direita = self.uno()
+            temp = self.gerador.nova_temp()
+
+            mapa = {
+                TokenType.MULTIPLY: "mult",
+                TokenType.DIVIDE: "div",
+                TokenType.WHOLE_DIVISION: "divI",
+                TokenType.MOD: "mod",
+            }
+
+            self.gerador.adicionar(mapa[operador_token], temp, esquerda, direita)
+            esquerda = temp
+
+        return esquerda
+
+    def uno(self) -> str:
+        if self.match(TokenType.PLUS):
+            op1 = self.uno()
+            temp = self.gerador.nova_temp()
+            self.gerador.adicionar("uno", temp, "+", op1)
+            return temp
+
+        if self.match(TokenType.MINUS):
+            op1 = self.uno()
+            temp = self.gerador.nova_temp()
+            self.gerador.adicionar("uno", temp, "-", op1)
+            return temp
+
         return self.fator_zao()
 
-    def fator_zao(self) -> Expression:
+    def fator_zao(self) -> str:
         if self.match(TokenType.LEFT_PAREN):
-            expression = self.atrib()
+            valor = self.atrib()
             self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' após expressão")
-            return expression
-        return self.fator_zin()
+            return valor
+        else:
+            return self.fator_zin()
 
-    def fator_zin(self) -> Expression:
+    def fator_zin(self) -> str:
         if self.match(TokenType.LITERAL_STRING):
-            token = self.anterior()
-            return Literal(token.token.name, token.lexema)
-
-        if self.match(TokenType.LITERAL_INT):
-            token = self.anterior()
-            return Literal(token.token.name, token.lexema)
-
-        if self.match(TokenType.LITERAL_FLOAT):
-            token = self.anterior()
-            return Literal(token.token.name, token.lexema)
-
-        if self.match(TokenType.LITERAL_CHAR):
-            token = self.anterior()
-            return Literal(token.token.name, token.lexema)
-
-        if self.match(TokenType.TRUE):
-            token = self.anterior()
-            return Literal(token.token.name, token.lexema)
-
-        if self.match(TokenType.FALSE):
-            token = self.anterior()
-            return Literal(token.token.name, token.lexema)
+            return repr(self.anterior().lexema)
 
         if self.match(TokenType.IDENTIFIER):
-            token = self.anterior()
-            return Identifier(token.lexema)
+            return self.anterior().lexema
+
+        if self.match(TokenType.LITERAL_INT):
+            return self.anterior().lexema
+
+        if self.match(TokenType.LITERAL_FLOAT):
+            return self.anterior().lexema
+
+        if self.match(TokenType.TRUE):
+            return self.anterior().lexema
+
+        if self.match(TokenType.FALSE):
+            return self.anterior().lexema
+
+        if self.match(TokenType.LITERAL_CHAR):
+            return repr(self.anterior().lexema)
 
         self.erro("Esperava literal, identificador ou expressão entre parênteses")
         return Literal("LITERAL_INT", "0")
