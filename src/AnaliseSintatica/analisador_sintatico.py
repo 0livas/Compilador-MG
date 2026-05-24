@@ -6,7 +6,6 @@ from typing import Optional
 from AnaliseLexica.mineires_token import Token
 from AnaliseLexica.tokenType import TokenType
 from AnaliseLexica.gerenciador_tokens import GerenciadorTokens
-from Intermediario.gerador_intermediario import GeradorIntermediario
 from AnaliseSintatica.nos_ast import (
     AssignmentExpr,
     AssignmentStmt,
@@ -64,7 +63,6 @@ class AnalisadorSintatico:
         self.posicao = 0
         self.programa: Program | None = None
         self.gerenciador_tokens = GerenciadorTokens()
-        self.gerador = GeradorIntermediario()
 
     def analisar(self) -> Program:
         programa = self.programa_()

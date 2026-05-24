@@ -27,8 +27,12 @@ def main():
     try:
         programa = sintatico.analisar()
         print("✓ Sintaxe válida")
-        print("BLOCOS INTERMEDIÁRIOS GERADOS:")
-        sintatico.gerador.imprimir()
+
+        gerador = GeradorQuadruplas()
+        gerador.gerar(programa)
+
+        print("QUÁDRUPLAS GERADAS:")
+        print(gerador.formatar())
     except ExcecaoSintatica as e:
         print("ERRO SINTÁTICO ENCONTRADO:")
         print(e)

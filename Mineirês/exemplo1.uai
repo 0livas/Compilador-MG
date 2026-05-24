@@ -17,9 +17,7 @@ simbora
     trosso quebra fica_assim_entao '\n' uai
     oia_proce_ve("Mensagem:", msg) uai
 
-    trem_di_numeru x fica_assim_entao msg + i uai
-    1.
-    .0
-    .3
+    trem_di_numeru zz fica_assim_entao a/b uai
+    1. uai
     ta_bao 0 uai
 cabo
