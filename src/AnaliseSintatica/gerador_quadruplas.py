@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple
 
-from .nos_ast import (
+from AnaliseSintatica.nos_ast import (
     AssignmentExpr,
     AssignmentStmt,
     BinaryExpr,
@@ -29,6 +29,8 @@ from .nos_ast import (
     WhileStmt,
 )
 
+from AnaliseSemantica.analisador_semantico import AnalisadorSemantico, SemanticError
+
 
 @dataclass
 class Quadruple:
@@ -53,12 +55,14 @@ class GeradorQuadruplas:
         self._temporario_atual = 0
         self._rotulo_atual = 0
         self._contextos: list[_ContextoControle] = []
+        self.semantico = AnalisadorSemantico()
 
     def gerar(self, programa: Program) -> list[Quadruple]:
         self.quadruplas = []
         self._temporario_atual = 0
         self._rotulo_atual = 0
         self._contextos = []
+        self.semantico = AnalisadorSemantico()
 
         for funcao in programa.functions:
             self._gerar_funcao(funcao)
@@ -73,6 +77,7 @@ class GeradorQuadruplas:
 
     def _gerar_funcao(self, funcao: FunctionDecl) -> None:
         self._emitir("label", funcao.name)
+        # O corpo da função é um Block, que já gerencia o escopo
         self._gerar_stmt(funcao.body)
 
     def _gerar_stmt(self, stmt: Statement) -> None:
@@ -80,8 +85,10 @@ class GeradorQuadruplas:
             return
 
         if isinstance(stmt, Block):
+            self.semantico.entrar_escopo()
             for statement in stmt.statements:
                 self._gerar_stmt(statement)
+            self.semantico.sair_escopo()
             return
 
         if isinstance(stmt, Declaration):
@@ -89,7 +96,12 @@ class GeradorQuadruplas:
             return
 
         if isinstance(stmt, AssignmentStmt):
-            valor = self._gerar_expr(stmt.value)
+            valor, tipo_valor = self._gerar_expr(stmt.value)
+            tipo_alvo = self.semantico.obter_tipo_variavel(stmt.target.name, getattr(stmt, 'linha', 0), getattr(stmt, 'coluna', 0))
+            
+            if tipo_alvo != tipo_valor:
+                raise SemanticError(f"Atribuição inválida: não é possível atribuir {tipo_valor} para {tipo_alvo} ('{stmt.target.name}')", getattr(stmt, 'linha', 0), getattr(stmt, 'coluna', 0))
+            
             self._emitir("att", stmt.target.name, valor)
             return
 
@@ -98,12 +110,13 @@ class GeradorQuadruplas:
             return
 
         if isinstance(stmt, InputStmt):
+            self.semantico.declarar_variavel(stmt.target, stmt.var_type)
             self._emitir("call", "read", stmt.target, "null")
             return
 
         if isinstance(stmt, OutputStmt):
             for value in stmt.values:
-                valor = self._gerar_expr(value)
+                valor, _ = self._gerar_expr(value)
                 if self._eh_textual(value):
                     self._emitir("call", "print", "null", valor)
                 else:
@@ -111,7 +124,7 @@ class GeradorQuadruplas:
             return
 
         if isinstance(stmt, ReturnStmt):
-            valor = self._gerar_expr(stmt.value)
+            valor, _ = self._gerar_expr(stmt.value)
             self._emitir("ret", valor)
             return
 
@@ -143,8 +156,14 @@ class GeradorQuadruplas:
 
     def _gerar_declaracao(self, declaracao: Declaration) -> None:
         for item in declaracao.items:
+            self.semantico.declarar_variavel(item.name, declaracao.var_type, getattr(item, 'linha', 0), getattr(item, 'coluna', 0))
             if item.initializer is not None:
-                valor = self._gerar_expr(item.initializer)
+                valor, tipo_valor = self._gerar_expr(item.initializer)
+                tipo_var = self.semantico.obter_tipo_variavel(item.name, getattr(item, 'linha', 0), getattr(item, 'coluna', 0))
+                
+                if tipo_var != tipo_valor:
+                    raise SemanticError(f"Inicialização inválida: variável '{item.name}' é {tipo_var} mas recebeu {tipo_valor}", getattr(item, 'linha', 0), getattr(item, 'coluna', 0))
+                
                 self._emitir("att", item.name, valor)
 
     def _gerar_if(self, stmt: IfStmt) -> None:
@@ -152,7 +171,10 @@ class GeradorQuadruplas:
         else_label = self._novo_rotulo()
         end_label = self._novo_rotulo() if stmt.else_branch is not None else else_label
 
-        condicao = self._gerar_expr(stmt.condition)
+        condicao, tipo_cond = self._gerar_expr(stmt.condition)
+        if tipo_cond != "BOOL":
+            raise SemanticError(f"Condição do 'uai_se' deve ser BOOL, não {tipo_cond}", getattr(stmt, 'linha', 0), getattr(stmt, 'coluna', 0))
+
         self._emitir("if", condicao, then_label, else_label)
         self._emitir("label", then_label)
         self._gerar_stmt(stmt.then_branch)
@@ -171,7 +193,10 @@ class GeradorQuadruplas:
         fim_label = self._novo_rotulo()
 
         self._emitir("label", inicio_label)
-        condicao = self._gerar_expr(stmt.condition)
+        condicao, tipo_cond = self._gerar_expr(stmt.condition)
+        if tipo_cond != "BOOL":
+             raise SemanticError(f"Condição do 'enquanto_tiver_trem' deve ser BOOL, não {tipo_cond}", getattr(stmt, 'linha', 0), getattr(stmt, 'coluna', 0))
+
         self._emitir("if", condicao, corpo_label, fim_label)
         self._emitir("label", corpo_label)
 
@@ -183,6 +208,8 @@ class GeradorQuadruplas:
         self._emitir("label", fim_label)
 
     def _gerar_for(self, stmt: ForStmt) -> None:
+        self.semantico.entrar_escopo()
+        
         if stmt.init is not None:
             self._gerar_stmt(stmt.init)
 
@@ -193,7 +220,9 @@ class GeradorQuadruplas:
 
         self._emitir("label", teste_label)
         if stmt.condition is not None:
-            condicao = self._gerar_expr(stmt.condition)
+            condicao, tipo_cond = self._gerar_expr(stmt.condition)
+            if tipo_cond != "BOOL":
+                raise SemanticError(f"Condição do 'roda_esse_trem' deve ser BOOL, não {tipo_cond}", getattr(stmt, 'linha', 0), getattr(stmt, 'coluna', 0))
             self._emitir("if", condicao, corpo_label, fim_label)
         else:
             self._emitir("jump", corpo_label)
@@ -208,15 +237,20 @@ class GeradorQuadruplas:
             self._gerar_expr(stmt.update)
         self._emitir("jump", teste_label)
         self._emitir("label", fim_label)
+        
+        self.semantico.sair_escopo()
 
     def _gerar_switch(self, stmt: SwitchStmt) -> None:
-        valor_switch = self._gerar_expr(stmt.expression)
+        valor_switch, tipo_switch = self._gerar_expr(stmt.expression)
         fim_label = self._novo_rotulo()
         case_labels = [self._novo_rotulo() for _ in stmt.cases]
         default_label = self._novo_rotulo() if stmt.default_statements is not None else fim_label
 
         for case, case_label in zip(stmt.cases, case_labels):
-            valor_caso = self._gerar_expr(case.value)
+            valor_caso, tipo_caso = self._gerar_expr(case.value)
+            if tipo_switch != tipo_caso:
+                raise SemanticError(f"Tipo do case ({tipo_caso}) incompatível com o switch ({tipo_switch})", getattr(stmt, 'linha', 0), getattr(stmt, 'coluna', 0))
+                
             comparacao = self._novo_temporario()
             self._emitir("eq", comparacao, valor_switch, valor_caso)
             self._emitir("if", comparacao, case_label, "null")
@@ -225,59 +259,74 @@ class GeradorQuadruplas:
 
         for case, case_label in zip(stmt.cases, case_labels):
             self._emitir("label", case_label)
+            self.semantico.entrar_escopo()
             self._contextos.append(_ContextoControle(break_label=fim_label))
             for statement in case.statements:
                 self._gerar_stmt(statement)
             self._contextos.pop()
+            self.semantico.sair_escopo()
             if not self._termina_em_fluxo_saida(case.statements):
                 self._emitir("jump", fim_label)
 
         if stmt.default_statements is not None:
             self._emitir("label", default_label)
+            self.semantico.entrar_escopo()
             self._contextos.append(_ContextoControle(break_label=fim_label))
             for statement in stmt.default_statements:
                 self._gerar_stmt(statement)
             self._contextos.pop()
+            self.semantico.sair_escopo()
             if not self._termina_em_fluxo_saida(stmt.default_statements):
                 self._emitir("jump", fim_label)
 
         self._emitir("label", fim_label)
 
-    def _gerar_expr(self, expression: Expression) -> str:
+    def _gerar_expr(self, expression: Expression) -> Tuple[str, str]:
         if isinstance(expression, Literal):
-            return self._formatar_literal(expression)
+            valor_conv, tipo = self.semantico.converter_e_obter_tipo_literal(expression)
+            if tipo in ["STRING", "CHAR"]:
+                 return self._formatar_literal_valor(tipo, valor_conv), tipo
+            return valor_conv, tipo
 
         if isinstance(expression, Identifier):
-            return expression.name
+            tipo = self.semantico.obter_tipo_variavel(expression.name, getattr(expression, 'linha', 0), getattr(expression, 'coluna', 0))
+            return expression.name, tipo
 
         if isinstance(expression, AssignmentExpr):
-            valor = self._gerar_expr(expression.value)
+            valor, tipo_valor = self._gerar_expr(expression.value)
+            tipo_alvo = self.semantico.obter_tipo_variavel(expression.target.name, getattr(expression, 'linha', 0), getattr(expression, 'coluna', 0))
+            
+            if tipo_alvo != tipo_valor:
+                raise SemanticError(f"Atribuição inválida na expressão: não é possível atribuir {tipo_valor} para {tipo_alvo} ('{expression.target.name}')", getattr(expression, 'linha', 0), getattr(expression, 'coluna', 0))
+                
             self._emitir("att", expression.target.name, valor)
-            return expression.target.name
+            return expression.target.name, tipo_alvo
 
         if isinstance(expression, UnaryExpr):
-            operando = self._gerar_expr(expression.operand)
+            operando, tipo_op = self._gerar_expr(expression.operand)
+            tipo_result = self.semantico.validar_operacao_unaria(expression.operator, tipo_op, getattr(expression, 'linha', 0), getattr(expression, 'coluna', 0))
+            
+            temp = self._novo_temporario()
             if expression.operator == "PLUS":
-                temp = self._novo_temporario()
                 self._emitir("uno", temp, "+", operando)
-                return temp
-            if expression.operator == "MINUS":
-                temp = self._novo_temporario()
+            elif expression.operator == "MINUS":
                 self._emitir("uno", temp, "-", operando)
-                return temp
-            if expression.operator == "NOT":
-                temp = self._novo_temporario()
+            elif expression.operator == "NOT":
                 self._emitir("not", temp, operando)
-                return temp
-            raise TypeError(f"Operador unário não suportado: {expression.operator}")
+            else:
+                raise TypeError(f"Operador unário não suportado: {expression.operator}")
+            return temp, tipo_result
 
         if isinstance(expression, BinaryExpr):
-            esquerdo = self._gerar_expr(expression.left)
-            direito = self._gerar_expr(expression.right)
+            esquerdo, tipo_esq = self._gerar_expr(expression.left)
+            direito, tipo_dir = self._gerar_expr(expression.right)
+            
+            tipo_result = self.semantico.validar_operacao_binaria(expression.operator, tipo_esq, tipo_dir, getattr(expression, 'linha', 0), getattr(expression, 'coluna', 0))
+            
             operador = self._mapear_operador_binario(expression.operator)
             temporario = self._novo_temporario()
             self._emitir(operador, temporario, esquerdo, direito)
-            return temporario
+            return temporario, tipo_result
 
         raise TypeError(f"Tipo de expressão não suportado: {type(expression)!r}")
 
@@ -308,14 +357,14 @@ class GeradorQuadruplas:
             return expression.kind in {"LITERAL_STRING", "LITERAL_CHAR"}
         return False
 
-    def _formatar_literal(self, literal: Literal) -> str:
-        if literal.kind == "LITERAL_STRING":
-            texto = literal.value.encode("unicode_escape").decode("ascii")
+    def _formatar_literal_valor(self, tipo: str, valor: str) -> str:
+        if tipo == "STRING":
+            texto = valor.encode("unicode_escape").decode("ascii")
             return f'"{texto}"'
-        if literal.kind == "LITERAL_CHAR":
-            texto = literal.value.encode("unicode_escape").decode("ascii")
+        if tipo == "CHAR":
+            texto = valor.encode("unicode_escape").decode("ascii")
             return f"'{texto}'"
-        return literal.value
+        return valor
 
     def _emitir(self, operacao: str, resultado: str = "null", arg1: str = "null", arg2: str = "null") -> None:
         self.quadruplas.append(Quadruple(operacao, resultado, arg1, arg2))

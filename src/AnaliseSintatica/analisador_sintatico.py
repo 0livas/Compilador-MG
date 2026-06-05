@@ -316,18 +316,18 @@ class AnalisadorSintatico:
         elif self.verificar(TokenType.BEGIN_BLOCK):
             return self.bloco()
         elif self.verificar(TokenType.BREAK):
-            self.avancar()
+            token_inicio = self.avancar()
             self.consumir_uai("Esperava 'uai' após 'para_o_trem'")
-            return BreakStmt()
+            return BreakStmt(linha=token_inicio.linha, coluna=token_inicio.coluna)
         elif self.verificar(TokenType.CONTINUE):
-            self.avancar()
+            token_inicio = self.avancar()
             self.consumir_uai("Esperava 'uai' após 'toca_o_trem'")
-            return ContinueStmt()
+            return ContinueStmt(linha=token_inicio.linha, coluna=token_inicio.coluna)
         elif self.verificar(TokenType.RETURN):
-            self.avancar()
+            token_inicio = self.avancar()
             valor = self.expr()
             self.consumir_uai("Esperava 'uai' após retorno")
-            return ReturnStmt(valor)
+            return ReturnStmt(valor, linha=token_inicio.linha, coluna=token_inicio.coluna)
         elif self.verificar(TokenType.SEMICOLON):
             self.consumir_uai("Esperava 'uai'")
             return EmptyStmt()
@@ -344,34 +344,38 @@ class AnalisadorSintatico:
             expressao = self.expr()
             self.consumir_uai("Esperava 'uai' após atribuição")
             if isinstance(expressao, AssignmentExpr):
-                return AssignmentStmt(expressao.target, expressao.value)
+                return AssignmentStmt(expressao.target, expressao.value, linha=expressao.linha, coluna=expressao.coluna)
             return ExpressionStmt(expressao)
 
     # descricao das instrucoes
 
     def declaration(self) -> Declaration:
+        token_inicio = self.atual()
         var_type = self.type_()
         items = [self.decl_item()]
         while self.match(TokenType.COMMA):
             items.append(self.decl_item())
         self.consumir_uai("Esperava 'uai' após declaração")
-        return Declaration(var_type, items)
+        return Declaration(var_type, items, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
     def decl_item(self) -> DeclarationItem:
+        token_ident = self.atual()
         identificador = self.consumir(TokenType.IDENTIFIER, "Esperava identificador").lexema
         if self.match(TokenType.ASSIGN):
             valor = self.expr()
-            return DeclarationItem(identificador, valor)
-        return DeclarationItem(identificador)
+            return DeclarationItem(identificador, valor, linha=token_ident.linha, coluna=token_ident.coluna)
+        return DeclarationItem(identificador, linha=token_ident.linha, coluna=token_ident.coluna)
 
     def for_declaration(self) -> Declaration:
+        token_inicio = self.atual()
         var_type = self.type_()
         items = [self.decl_item()]
         while self.match(TokenType.COMMA):
             items.append(self.decl_item())
-        return Declaration(var_type, items)
+        return Declaration(var_type, items, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
     def for_stmt(self) -> ForStmt:
+        token_inicio = self.atual()
         self.consumir(TokenType.FOR, "Esperava 'roda_esse_trem'")
         self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após for")
 
@@ -386,7 +390,7 @@ class AnalisadorSintatico:
             }:
                 init = self.for_declaration()
             else:
-                init = ExpressionStmt(self.expr())
+                init = ExpressionStmt(self.expr(), linha=self.atual().linha, coluna=self.atual().coluna)
         self.consumir_ponto_virgula_for("Esperava ';' como separador do for")
 
         condition: Expression | None = None
@@ -400,25 +404,27 @@ class AnalisadorSintatico:
         self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' ao final do for")
 
         body = self.stmt()
-        return ForStmt(init, condition, update, body)
+        return ForStmt(init, condition, update, body, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
     def io_stmt(self) -> Statement:
         if self.match(TokenType.INPUT):
+            token_inicio = self.anterior()
             self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após 'xove'")
             var_type = self.type_()
             self.consumir(TokenType.COMMA, "Esperava ',' em xove")
             identificador = self.consumir(TokenType.IDENTIFIER, "Esperava identificador em xove").lexema
             self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' em xove")
             self.consumir_uai("Esperava 'uai' após xove")
-            return InputStmt(var_type, identificador)
+            return InputStmt(var_type, identificador, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
         if self.match(TokenType.OUTPUT):
+            token_inicio = self.anterior()
             self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após 'oia_proce_ve'")
             valores = self.out_list()
             self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' em oia_proce_ve")
             self.consumir_uai("Esperava 'uai' após saída")
 
-            return OutputStmt(valores)
+            return OutputStmt(valores, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
         self.erro("Esperava comando de entrada ou saída")
         return EmptyStmt()
@@ -433,14 +439,16 @@ class AnalisadorSintatico:
         return self.fator_zin()
 
     def while_stmt(self) -> WhileStmt:
+        token_inicio = self.atual()
         self.consumir(TokenType.WHILE, "Esperava 'enquanto_tiver_trem'")
         self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após while")
         condition = self.expr()
         self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' após expressão do while")
         body = self.stmt()
-        return WhileStmt(condition, body)
+        return WhileStmt(condition, body, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
     def if_stmt(self) -> IfStmt:
+        token_inicio = self.atual()
         self.consumir(TokenType.IF, "Esperava 'uai_se'")
         self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após if")
         condition = self.expr()
@@ -449,9 +457,10 @@ class AnalisadorSintatico:
         else_branch = None
         if self.match(TokenType.ELSE):
             else_branch = self.stmt()
-        return IfStmt(condition, then_branch, else_branch)
+        return IfStmt(condition, then_branch, else_branch, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
     def case_stmt(self) -> SwitchStmt:
+        token_inicio = self.atual()
         self.consumir(TokenType.SWITCH, "Esperava 'dependenu'")
         self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após switch")
         expression = self.expr()
@@ -468,7 +477,7 @@ class AnalisadorSintatico:
                 default_statements = self.default_case()
 
         self.consumir(TokenType.END_BLOCK, "Esperava 'cabo' no switch")
-        return SwitchStmt(expression, cases, default_statements)
+        return SwitchStmt(expression, cases, default_statements, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
     def corpo_case(self) -> list[Statement]:
         statements: list[Statement] = []
@@ -482,11 +491,12 @@ class AnalisadorSintatico:
         return statements
 
     def do_caso(self) -> SwitchCase:
+        token_inicio = self.atual()
         self.consumir(TokenType.CASE, "Esperava 'du_casu'")
         value = self.expr()
         self.consumir(TokenType.COLON, "Esperava ':' após valor do caso")
         statements = self.corpo_case()
-        return SwitchCase(value, statements)
+        return SwitchCase(value, statements, linha=token_inicio.linha, coluna=token_inicio.coluna)
 
     def default_case(self) -> list[Statement]:
         self.consumir(TokenType.DEFAULT, "Esperava 'uai_so'")
@@ -506,8 +516,9 @@ class AnalisadorSintatico:
             if not isinstance(esquerda, Identifier):
                 self.erro("Lado esquerdo da atribuição inválido")
 
+            token_operador = self.anterior()
             valor = self.atrib()
-            return AssignmentExpr(esquerda, valor)
+            return AssignmentExpr(esquerda, valor, linha=token_operador.linha, coluna=token_operador.coluna)
 
         return esquerda
 
@@ -515,8 +526,9 @@ class AnalisadorSintatico:
         esquerda = self.xor()
 
         while self.match(TokenType.OR):
+            operador_token = self.anterior()
             direita = self.xor()
-            esquerda = BinaryExpr("OR", esquerda, direita)
+            esquerda = BinaryExpr("OR", esquerda, direita, linha=operador_token.linha, coluna=operador_token.coluna)
 
         return esquerda
 
@@ -524,8 +536,9 @@ class AnalisadorSintatico:
         esquerda = self.and_()
 
         while self.match(TokenType.XOR):
+            operador_token = self.anterior()
             direita = self.and_()
-            esquerda = BinaryExpr("XOR", esquerda, direita)
+            esquerda = BinaryExpr("XOR", esquerda, direita, linha=operador_token.linha, coluna=operador_token.coluna)
 
         return esquerda
 
@@ -533,15 +546,17 @@ class AnalisadorSintatico:
         esquerda = self.not_()
 
         while self.match(TokenType.AND):
+            operador_token = self.anterior()
             direita = self.not_()
-            esquerda = BinaryExpr("AND", esquerda, direita)
+            esquerda = BinaryExpr("AND", esquerda, direita, linha=operador_token.linha, coluna=operador_token.coluna)
 
         return esquerda
 
     def not_(self) -> Expression:
         if self.match(TokenType.NOT):
+            operador_token = self.anterior()
             op1 = self.not_()
-            return UnaryExpr("NOT", op1)
+            return UnaryExpr("NOT", op1, linha=operador_token.linha, coluna=operador_token.coluna)
 
         return self.rel()
 
@@ -556,9 +571,9 @@ class AnalisadorSintatico:
             TokenType.GREATER,
             TokenType.GREATER_EQUAL,
         ):
-            operador_token = self.anterior().token
+            operador_token = self.anterior()
             direita = self.add()
-            esquerda = BinaryExpr(operador_token.name, esquerda, direita)
+            esquerda = BinaryExpr(operador_token.token.name, esquerda, direita, linha=operador_token.linha, coluna=operador_token.coluna)
 
         return esquerda
 
@@ -566,9 +581,9 @@ class AnalisadorSintatico:
         esquerda = self.mult()
 
         while self.match(TokenType.PLUS, TokenType.MINUS):
-            operador_token = self.anterior().token
+            operador_token = self.anterior()
             direita = self.mult()
-            esquerda = BinaryExpr(operador_token.name, esquerda, direita)
+            esquerda = BinaryExpr(operador_token.token.name, esquerda, direita, linha=operador_token.linha, coluna=operador_token.coluna)
 
         return esquerda
 
@@ -581,20 +596,22 @@ class AnalisadorSintatico:
             TokenType.WHOLE_DIVISION,
             TokenType.MOD
         ):
-            operador_token = self.anterior().token
+            operador_token = self.anterior()
             direita = self.uno()
-            esquerda = BinaryExpr(operador_token.name, esquerda, direita)
+            esquerda = BinaryExpr(operador_token.token.name, esquerda, direita, linha=operador_token.linha, coluna=operador_token.coluna)
 
         return esquerda
 
     def uno(self) -> Expression:
         if self.match(TokenType.PLUS):
+            operador_token = self.anterior()
             op1 = self.uno()
-            return UnaryExpr("PLUS", op1)
+            return UnaryExpr("PLUS", op1, linha=operador_token.linha, coluna=operador_token.coluna)
 
         if self.match(TokenType.MINUS):
+            operador_token = self.anterior()
             op1 = self.uno()
-            return UnaryExpr("MINUS", op1)
+            return UnaryExpr("MINUS", op1, linha=operador_token.linha, coluna=operador_token.coluna)
 
         return self.fator_zao()
 
@@ -608,25 +625,33 @@ class AnalisadorSintatico:
 
     def fator_zin(self) -> Expression:
         if self.match(TokenType.LITERAL_STRING):
-            return Literal("LITERAL_STRING", self.anterior().lexema)
+            token = self.anterior()
+            return Literal("LITERAL_STRING", token.lexema, linha=token.linha, coluna=token.coluna)
 
         if self.match(TokenType.IDENTIFIER):
-            return Identifier(self.anterior().lexema)
+            token = self.anterior()
+            return Identifier(token.lexema, linha=token.linha, coluna=token.coluna)
 
         if self.match(TokenType.LITERAL_INT):
-            return Literal("LITERAL_INT", self.anterior().lexema)
+            token = self.anterior()
+            return Literal("LITERAL_INT", token.lexema, linha=token.linha, coluna=token.coluna)
 
         if self.match(TokenType.LITERAL_FLOAT):
-            return Literal("LITERAL_FLOAT", self.anterior().lexema)
+            token = self.anterior()
+            return Literal("LITERAL_FLOAT", token.lexema, linha=token.linha, coluna=token.coluna)
 
         if self.match(TokenType.TRUE):
-            return Literal("TRUE", self.anterior().lexema)
+            token = self.anterior()
+            return Literal("TRUE", token.lexema, linha=token.linha, coluna=token.coluna)
 
         if self.match(TokenType.FALSE):
-            return Literal("FALSE", self.anterior().lexema)
+            token = self.anterior()
+            return Literal("FALSE", token.lexema, linha=token.linha, coluna=token.coluna)
 
         if self.match(TokenType.LITERAL_CHAR):
-            return Literal("LITERAL_CHAR", self.anterior().lexema)
+            token = self.anterior()
+            return Literal("LITERAL_CHAR", token.lexema, linha=token.linha, coluna=token.coluna)
 
         self.erro("Esperava literal, identificador ou expressão entre parênteses")
-        return Literal("LITERAL_INT", "0")
+        token = self.atual()
+        return Literal("LITERAL_INT", "0", linha=token.linha, coluna=token.coluna)
