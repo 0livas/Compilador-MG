@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from AnaliseLexica.analisador_lexico import AnalisadorLexico
 from AnaliseSintatica.analisador_sintatico import AnalisadorSintatico, ExcecaoSintatica
 from AnaliseSintatica.gerador_quadruplas import GeradorQuadruplas
+from AnaliseSemantica.analisador_semantico import SemanticError
 
 
 def main():
@@ -37,6 +38,9 @@ def main():
 		print(gerador.formatar())
 	except ExcecaoSintatica as e:
 		print("ERRO SINTÁTICO ENCONTRADO:")
+		print(e)
+	except SemanticError as e:
+		print("ERRO SEMÂNTICO ENCONTRADO:")
 		print(e)
 
 

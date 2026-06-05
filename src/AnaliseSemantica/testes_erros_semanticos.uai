@@ -1,0 +1,107 @@
+bora_cumpade erro_redeclaracao()
+simbora
+    trem_di_numeru x fica_assim_entao 10 uai
+    trem_di_numeru x fica_assim_entao 20 uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_nao_declarado()
+simbora
+    y fica_assim_entao 10 uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_tipos_incompativeis_binario()
+simbora
+    trem_di_numeru a fica_assim_entao 1 uai
+    trem_discrita b fica_assim_entao "texto" uai
+    trem_di_numeru c fica_assim_entao a + b uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_operacao_apenas_int()
+simbora
+    trem_cum_virgula a fica_assim_entao 5.5 uai
+    trem_cum_virgula b fica_assim_entao 2.0 uai
+    trem_cum_virgula c fica_assim_entao a % b uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_operacao_logica_apenas_bool()
+simbora
+    trem_di_numeru a fica_assim_entao 1 uai
+    trem_di_numeru b fica_assim_entao 2 uai
+    trem_discolhe c fica_assim_entao a tamem b uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_operacao_not_apenas_bool()
+simbora
+    trem_di_numeru a fica_assim_entao 1 uai
+    trem_discolhe c fica_assim_entao vam_marca a uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_operacao_unaria_numerica()
+simbora
+    trem_discrita a fica_assim_entao "texto" uai
+    trem_discrita b fica_assim_entao -a uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_atribuicao_invalida()
+simbora
+    trem_di_numeru a uai
+    a fica_assim_entao "texto" uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_inicializacao_invalida()
+simbora
+    trem_di_numeru a fica_assim_entao "texto" uai
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_condicao_if_nao_bool()
+simbora
+    trem_di_numeru a fica_assim_entao 1 uai
+    uai_se (a) simbora
+        oia_proce_ve("a") uai
+    cabo
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_condicao_while_nao_bool()
+simbora
+    trem_di_numeru a fica_assim_entao 1 uai
+    enquanto_tiver_trem (a) simbora
+        oia_proce_ve("a") uai
+    cabo
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_condicao_for_nao_bool()
+simbora
+    roda_esse_trem (trem_di_numeru i fica_assim_entao 0; i; i fica_assim_entao i + 1) simbora
+        oia_proce_ve("loop") uai
+    cabo
+    ta_bao 0 uai
+cabo
+
+bora_cumpade erro_switch_tipo_incompativel()
+simbora
+    trem_di_numeru a fica_assim_entao 1 uai
+    dependenu (a) simbora
+        du_casu "texto":
+            oia_proce_ve("caso") uai
+    cabo
+    ta_bao 0 uai
+cabo
+
+bora_cumpade main()
+simbora
+    trem_cum_virgula a fica_assim_entao 5.5 uai
+    trem_cum_virgula b fica_assim_entao 2.0 uai
+    trem_cum_virgula c fica_assim_entao a % b uai
+    ta_bao 0 uai
+cabo
