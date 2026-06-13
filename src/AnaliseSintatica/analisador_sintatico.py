@@ -463,7 +463,8 @@ class AnalisadorSintatico:
         token_inicio = self.atual()
         self.consumir(TokenType.SWITCH, "Esperava 'dependenu'")
         self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após switch")
-        expression = self.expr()
+        ident_token = self.consumir(TokenType.IDENTIFIER, "Esperava identificador em dependenu")
+        expression = Identifier(ident_token.lexema, linha=ident_token.linha, coluna=ident_token.coluna)
         self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' após switch")
         self.consumir(TokenType.BEGIN_BLOCK, "Esperava 'simbora' no switch")
 
@@ -473,8 +474,10 @@ class AnalisadorSintatico:
         while not self.esta_no_fim() and not self.verificar(TokenType.END_BLOCK):
             if self.verificar(TokenType.CASE):
                 cases.append(self.do_caso())
-            else:
+            elif self.verificar(TokenType.DEFAULT):
                 default_statements = self.default_case()
+            else:
+                self.erro("Esperava 'du_casu', 'uai_so' ou 'cabo' no switch")
 
         self.consumir(TokenType.END_BLOCK, "Esperava 'cabo' no switch")
         return SwitchStmt(expression, cases, default_statements, linha=token_inicio.linha, coluna=token_inicio.coluna)
@@ -493,7 +496,7 @@ class AnalisadorSintatico:
     def do_caso(self) -> SwitchCase:
         token_inicio = self.atual()
         self.consumir(TokenType.CASE, "Esperava 'du_casu'")
-        value = self.expr()
+        value = self.fator_zin_menor_ainda()
         self.consumir(TokenType.COLON, "Esperava ':' após valor do caso")
         statements = self.corpo_case()
         return SwitchCase(value, statements, linha=token_inicio.linha, coluna=token_inicio.coluna)
@@ -503,7 +506,36 @@ class AnalisadorSintatico:
         self.consumir(TokenType.COLON, "Esperava ':' após uai_so")
         return self.corpo_case()
 
-   
+    def fator_zin_menor_ainda(self) -> Expression:
+        if self.match(TokenType.LITERAL_STRING):
+            token = self.anterior()
+            return Literal("LITERAL_STRING", token.lexema, linha=token.linha, coluna=token.coluna)
+
+        if self.match(TokenType.LITERAL_INT):
+            token = self.anterior()
+            return Literal("LITERAL_INT", token.lexema, linha=token.linha, coluna=token.coluna)
+
+        if self.match(TokenType.LITERAL_FLOAT):
+            token = self.anterior()
+            return Literal("LITERAL_FLOAT", token.lexema, linha=token.linha, coluna=token.coluna)
+
+        if self.match(TokenType.TRUE):
+            token = self.anterior()
+            return Literal("TRUE", token.lexema, linha=token.linha, coluna=token.coluna)
+
+        if self.match(TokenType.FALSE):
+            token = self.anterior()
+            return Literal("FALSE", token.lexema, linha=token.linha, coluna=token.coluna)
+
+        if self.match(TokenType.LITERAL_CHAR):
+            token = self.anterior()
+            return Literal("LITERAL_CHAR", token.lexema, linha=token.linha, coluna=token.coluna)
+
+        self.erro("Esperava string, inteiro, float, booleano ou char no valor do caso")
+        token = self.atual()
+        return Literal("LITERAL_INT", "0", linha=token.linha, coluna=token.coluna)
+
+
     # expressoes
 
     def expr(self) -> Expression:
