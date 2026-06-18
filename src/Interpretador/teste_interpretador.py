@@ -11,7 +11,7 @@ from Interpretador.interpretador import Interpretador, RuntimeErrorMineires
 
 
 def main():
-    caminho = str(Path(__file__).resolve().parent.parent / "Mineirês" / "exemplo1.uai")
+    caminho = str(Path(__file__).resolve().parent.parent.parent / "Mineirês" / "exemplo1.uai")
 
     lexico = AnalisadorLexico()
     tokens, erros_lexicos = lexico.analisar_arquivo(caminho)
@@ -33,14 +33,13 @@ def main():
         gerador = GeradorQuadruplas()
         quadruplas = gerador.gerar(programa)
 
-        print("\nAST montada com sucesso.")
-        print(f"Funções encontradas: {len(programa.functions)}")
-        print("\nQUADRUPLAS GERADAS:")
+        print("\nQUÁDRUPLAS GERADAS:")
         print(gerador.formatar())
 
         print("\nEXECUÇÃO DO PROGRAMA:")
         interpretador = Interpretador()
         retorno = interpretador.executar(quadruplas)
+
         print(f"\n\nRETORNO: {retorno}")
     except ExcecaoSintatica as e:
         print("ERRO SINTÁTICO ENCONTRADO:")
