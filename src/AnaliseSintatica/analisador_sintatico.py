@@ -416,7 +416,7 @@ class AnalisadorSintatico:
             self.consumir(TokenType.RIGHT_PAREN, "Esperava ')' em xove")
             self.consumir_uai("Esperava 'uai' após xove")
             return InputStmt(var_type, identificador, linha=token_inicio.linha, coluna=token_inicio.coluna)
-
+                                
         if self.match(TokenType.OUTPUT):
             token_inicio = self.anterior()
             self.consumir(TokenType.LEFT_PAREN, "Esperava '(' após 'oia_proce_ve'")

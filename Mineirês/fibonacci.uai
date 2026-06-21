@@ -1,5 +1,9 @@
 bora_cumpade main()
 simbora
+    causo COMENTARIO MULTILINHA
+    A 
+    A 
+    fim_do_causo
     trem_di_numeru n fica_assim_entao 20 uai
     trem_di_numeru a fica_assim_entao 0 uai
     trem_di_numeru b fica_assim_entao 1 uai
@@ -8,7 +12,7 @@ simbora
 
     oia_proce_ve("Sequencia de Fibonacci ate n = 20:\n") uai
 
-    roda_esse_trem (i fica_assim_entao 0; i < n; i fica_assim_entao i + 1) simbora
+    roda_esse_trem (i fica_assim_entao 0 uai i < n; i fica_assim_entao i + 1) simbora
         oia_proce_ve(a, "\n") uai
         temp fica_assim_entao a + b uai
         a fica_assim_entao b uai

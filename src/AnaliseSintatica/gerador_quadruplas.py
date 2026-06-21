@@ -110,7 +110,21 @@ class GeradorQuadruplas:
             return
 
         if isinstance(stmt, InputStmt):
-            self.semantico.declarar_variavel(stmt.target, stmt.var_type)
+            tipo_variavel = self.semantico.obter_tipo_variavel(
+                stmt.target,
+                getattr(stmt, "linha", 0),
+                getattr(stmt, "coluna", 0),
+            )
+
+            tipo_entrada = self.semantico.MAPA_TIPOS.get(stmt.var_type, stmt.var_type)
+
+            if tipo_variavel != tipo_entrada:
+                raise SemanticError(
+                    f"Tipo incompatível em xove: variável '{stmt.target}' é {tipo_variavel}, mas o comando usa {tipo_entrada}",
+                    getattr(stmt, "linha", 0),
+                    getattr(stmt, "coluna", 0),
+                )
+
             self._emitir("call", "read", stmt.target, "null")
             return
 

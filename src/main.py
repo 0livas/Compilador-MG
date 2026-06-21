@@ -38,6 +38,7 @@ def main():
         print("\nQUADRUPLAS GERADAS:")
         print(gerador.formatar())
 
+        print("="*40)
         print("\nEXECUÇÃO DO PROGRAMA:")
         interpretador = Interpretador()
         retorno = interpretador.executar(quadruplas)
@@ -51,7 +52,7 @@ def main():
     except RuntimeErrorMineires as e:
         print("ERRO DE EXECUÇÃO ENCONTRADO:")
         print(e)
-
+        print("="*40)
 
 if __name__ == "__main__":
     main()

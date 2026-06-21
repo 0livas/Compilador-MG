@@ -7,7 +7,7 @@ simbora
             oia_proce_ve("Opcao 1") uai
             para_o_trem uai
 
-        du_casu 2:
+        du_casu ainda:
             oia_proce_ve("Opcao 2") uai
             para_o_trem uai
 
