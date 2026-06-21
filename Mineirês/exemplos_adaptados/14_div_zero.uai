@@ -1,0 +1,10 @@
+bora_cumpade main()
+simbora
+    trem_di_numeru n uai
+    trem_di_numeru n2 uai
+    trem_di_numeru n3 uai
+    n fica_assim_entao 10 uai
+    n2 fica_assim_entao 0 uai
+    n3 fica_assim_entao n / n2 uai
+    oia_proce_ve(n3, "\n") uai
+cabo

@@ -1,0 +1,10 @@
+bora_cumpade main()
+simbora
+    trosso c uai
+    trem_di_numeru n uai
+    c fica_assim_entao 'a' uai
+    n fica_assim_entao 10 uai
+    uai_se (c mema_coisa n) simbora
+        oia_proce_ve("erro\n") uai
+    cabo
+cabo

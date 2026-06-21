@@ -52,7 +52,8 @@ def main():
     except RuntimeErrorMineires as e:
         print("ERRO DE EXECUÇÃO ENCONTRADO:")
         print(e)
-        print("="*40)
+
+    print("="*40)
 
 if __name__ == "__main__":
     main()

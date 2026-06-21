@@ -1,0 +1,10 @@
+bora_cumpade main()
+simbora
+    trem_discrita s uai
+    trem_discrita s2 uai
+    trem_discrita s3 uai
+    s fica_assim_entao "ab" uai
+    s2 fica_assim_entao "ab" uai
+    s3 fica_assim_entao s - s2 uai
+    oia_proce_ve(s3) uai
+cabo

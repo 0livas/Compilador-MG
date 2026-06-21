@@ -1,0 +1,14 @@
+bora_cumpade main()
+simbora
+    trem_discolhe a uai
+    trem_discolhe b uai
+    a fica_assim_entao eh uai
+    b fica_assim_entao num_eh uai
+    uai_se (a quarque_um b) simbora
+        oia_proce_ve("resultado verdadeiro\n") uai
+    cabo
+    uai_senao simbora
+        oia_proce_ve("resultado falso\n") uai
+    cabo
+    ta_bao 0 uai
+cabo

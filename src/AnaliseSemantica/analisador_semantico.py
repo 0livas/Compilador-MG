@@ -62,19 +62,41 @@ class AnalisadorSemantico:
         return tipo
 
     def validar_operacao_binaria(self, operador: str, tipo_esq: str, tipo_dir: str, linha: int = 0, coluna: int = 0) -> str:
-        if tipo_esq != tipo_dir:
-            raise SemanticError(f"Tipos incompatíveis para operação '{operador}': {tipo_esq} e {tipo_dir}", linha, coluna)
-        
-        if operador in ["EQUAL", "NOT_EQUAL", "LESS", "LESS_EQUAL", "GREATER", "GREATER_EQUAL"]:
-            return "BOOL"
-        
-        if operador in ["MOD", "WHOLE_DIVISION"] and tipo_esq != "INT":
-             raise SemanticError(f"Operação '{operador}' só é permitida para o tipo INT.", linha, coluna)
-        
-        if operador in ["AND", "OR", "XOR"] and tipo_esq != "BOOL":
-             raise SemanticError(f"Operação lógica '{operador}' só é permitida para o tipo BOOL.", linha, coluna)
+        tipos_numericos = {"INT", "FLOAT"}
 
-        return tipo_esq
+        if operador in ["AND", "OR", "XOR"]:
+            if tipo_esq == tipo_dir == "BOOL":
+                return "BOOL"
+            raise SemanticError(f"Operação lógica '{operador}' só é permitida para o tipo BOOL.", linha, coluna)
+
+        if operador in ["PLUS"]:
+            if tipo_esq == tipo_dir == "STRING":
+                return "STRING"
+            if tipo_esq == tipo_dir and tipo_esq in tipos_numericos:
+                return tipo_esq
+            raise SemanticError(f"Tipos incompatíveis para operação '{operador}': {tipo_esq} e {tipo_dir}", linha, coluna)
+
+        if operador in ["MINUS", "MULTIPLY", "DIVIDE"]:
+            if tipo_esq == tipo_dir and tipo_esq in tipos_numericos:
+                return tipo_esq
+            raise SemanticError(f"Operação '{operador}' só é permitida para tipos numéricos compatíveis, não {tipo_esq} e {tipo_dir}.", linha, coluna)
+
+        if operador in ["MOD", "WHOLE_DIVISION"]:
+            if tipo_esq == tipo_dir == "INT":
+                return "INT"
+            raise SemanticError(f"Operação '{operador}' só é permitida para o tipo INT.", linha, coluna)
+
+        if operador in ["LESS", "LESS_EQUAL", "GREATER", "GREATER_EQUAL"]:
+            if tipo_esq == tipo_dir and tipo_esq in tipos_numericos:
+                return "BOOL"
+            raise SemanticError(f"Operação relacional '{operador}' só é permitida para tipos numéricos compatíveis, não {tipo_esq} e {tipo_dir}.", linha, coluna)
+
+        if operador in ["EQUAL", "NOT_EQUAL"]:
+            if tipo_esq == tipo_dir and tipo_esq in {"INT", "FLOAT", "STRING", "CHAR", "BOOL"}:
+                return "BOOL"
+            raise SemanticError(f"Tipos incompatíveis para operação '{operador}': {tipo_esq} e {tipo_dir}", linha, coluna)
+
+        raise SemanticError(f"Operador binário não suportado semanticamente: {operador}", linha, coluna)
 
     def validar_operacao_unaria(self, operador: str, tipo: str, linha: int = 0, coluna: int = 0) -> str:
         if operador == "NOT" and tipo != "BOOL":

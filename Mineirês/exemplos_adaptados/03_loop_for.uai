@@ -1,0 +1,21 @@
+// Exemplo com for loop + break/continue
+bora_cumpade main()
+simbora
+    trem_di_numeru i uai
+
+    roda_esse_trem (i fica_assim_entao 1; i < 5; i fica_assim_entao i + 1) simbora
+        uai_se (i mema_coisa 2) simbora
+            toca_o_trem uai
+        cabo
+        uai_senao simbora
+            uai_se (i mema_coisa 4) simbora
+                para_o_trem uai
+            cabo
+            uai_senao simbora
+                oia_proce_ve(i, "\n") uai
+            cabo
+        cabo
+    cabo
+
+    ta_bao 0 uai
+cabo

@@ -1,0 +1,8 @@
+bora_cumpade main()
+simbora
+    trem_discrita s uai
+    s fica_assim_entao "ola" uai
+    s fica_assim_entao s + "mundo" uai
+    oia_proce_ve(s, "\n") uai
+    ta_bao 0 uai
+cabo

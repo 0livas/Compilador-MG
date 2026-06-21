@@ -188,8 +188,9 @@ class Interpretador:
 
         if funcao == "read":
             nome_variavel = quadrupla.arg1
+            tipo_esperado = quadrupla.arg2
             entrada = input()
-            self.memoria[nome_variavel] = self._inferir_literal_entrada(entrada)
+            self.memoria[nome_variavel] = self._converter_entrada_tipada(entrada, tipo_esperado)
             return
 
         raise RuntimeErrorMineires(f"Call não suportado: {funcao}", self.ip + 1)
@@ -244,17 +245,59 @@ class Interpretador:
             return "null"
         return str(valor)
 
-    def _inferir_literal_entrada(self, texto: str) -> Any:
+    def _converter_entrada_tipada(self, texto: str, tipo_esperado: str) -> Any:
         texto = texto.strip()
-        if texto == "eh":
-            return True
-        if texto == "num_eh":
-            return False
-        if self._eh_inteiro(texto):
-            return int(texto)
-        if self._eh_float(texto):
-            return float(texto)
-        return texto
+
+        if tipo_esperado == "INT":
+            if self._eh_inteiro(texto):
+                return int(texto)
+            raise RuntimeErrorMineires(
+                f"Entrada inválida: esperado inteiro, recebido '{texto}'.",
+                self.ip + 1,
+            )
+
+        if tipo_esperado == "FLOAT":
+            if self._eh_inteiro(texto):
+                return float(int(texto))
+            if self._eh_float(texto):
+                return float(texto)
+            raise RuntimeErrorMineires(
+                f"Entrada inválida: esperado float, recebido '{texto}'.",
+                self.ip + 1,
+            )
+
+        if tipo_esperado == "BOOL":
+            if texto == "eh":
+                return True
+            if texto == "num_eh":
+                return False
+            raise RuntimeErrorMineires(
+                f"Entrada inválida: esperado booleano ('eh' ou 'num_eh'), recebido '{texto}'.",
+                self.ip + 1,
+            )
+
+        if tipo_esperado == "CHAR":
+            if len(texto) == 1:
+                return texto
+            if len(texto) >= 2 and texto[0] == "'" and texto[-1] == "'":
+                conteudo = texto[1:-1]
+                valor = self._desserializar_string(conteudo)
+                if len(valor) == 1:
+                    return valor
+            raise RuntimeErrorMineires(
+                f"Entrada inválida: esperado char, recebido '{texto}'.",
+                self.ip + 1,
+            )
+
+        if tipo_esperado == "STRING":
+            if len(texto) >= 2 and texto[0] == '"' and texto[-1] == '"':
+                return self._desserializar_string(texto[1:-1])
+            return texto
+
+        raise RuntimeErrorMineires(
+            f"Tipo de entrada não suportado: {tipo_esperado}.",
+            self.ip + 1,
+        )
 
     def _desserializar_string(self, texto_escapado: str) -> str:
         return bytes(texto_escapado, "utf-8").decode("unicode_escape")

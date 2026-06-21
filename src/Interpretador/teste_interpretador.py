@@ -33,23 +33,29 @@ def main():
         gerador = GeradorQuadruplas()
         quadruplas = gerador.gerar(programa)
 
-        print("\nQUÁDRUPLAS GERADAS:")
+        print("\nAST montada com sucesso.")
+        print(f"Funções encontradas: {len(programa.functions)}")
+        print("\nQUADRUPLAS GERADAS:")
         print(gerador.formatar())
 
+        print("=" * 40)
         print("\nEXECUÇÃO DO PROGRAMA:")
         interpretador = Interpretador()
         retorno = interpretador.executar(quadruplas)
-
         print(f"\n\nRETORNO: {retorno}")
+
     except ExcecaoSintatica as e:
         print("ERRO SINTÁTICO ENCONTRADO:")
         print(e)
+
     except SemanticError as e:
         print("ERRO SEMÂNTICO ENCONTRADO:")
         print(e)
+
     except RuntimeErrorMineires as e:
         print("ERRO DE EXECUÇÃO ENCONTRADO:")
         print(e)
+        print("\n", "=" * 40)
 
 
 if __name__ == "__main__":

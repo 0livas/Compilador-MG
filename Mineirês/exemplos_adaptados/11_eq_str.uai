@@ -1,0 +1,30 @@
+bora_cumpade main()
+simbora
+    trem_discrita s1, s2 uai
+    s1 fica_assim_entao "abc" uai
+    s2 fica_assim_entao "abc" uai
+
+    uai_se (s1 mema_coisa s2) simbora
+        oia_proce_ve("s1 == s2\n") uai
+    cabo
+    uai_senao simbora
+        oia_proce_ve("s1 != s2\n") uai
+    cabo
+
+    uai_se (s1 mema_coisa "abc") simbora
+        oia_proce_ve("s1 == \"abc\"\n") uai
+    cabo
+    uai_senao simbora
+        oia_proce_ve("s1 != \"abc\"\n") uai
+    cabo
+
+    s2 fica_assim_entao "def" uai
+    uai_se (s1 neh_nada s2) simbora
+        oia_proce_ve("s1 != s2 (agora)\n") uai
+    cabo
+    uai_senao simbora
+        oia_proce_ve("s1 == s2 (agora)\n") uai
+    cabo
+
+    ta_bao 0 uai
+cabo

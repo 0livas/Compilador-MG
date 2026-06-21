@@ -1,0 +1,23 @@
+bora_cumpade main()
+simbora
+    trem_di_numeru n, i, a, b, temp uai
+
+    n fica_assim_entao 10 uai
+    a fica_assim_entao 0 uai
+    b fica_assim_entao 1 uai
+
+    oia_proce_ve(a, "\n") uai
+    oia_proce_ve(b, "\n") uai
+
+    i fica_assim_entao 2 uai
+
+    enquanto_tiver_trem (i < n) simbora
+        temp fica_assim_entao a + b uai
+        oia_proce_ve(temp, "\n") uai
+        a fica_assim_entao b uai
+        b fica_assim_entao temp uai
+        i fica_assim_entao i + 1 uai
+    cabo
+
+    ta_bao 0 uai
+cabo

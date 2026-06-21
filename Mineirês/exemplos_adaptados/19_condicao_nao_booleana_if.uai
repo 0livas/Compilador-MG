@@ -1,0 +1,12 @@
+bora_cumpade main()
+simbora
+    trem_di_numeru x uai
+    x fica_assim_entao 10 uai
+
+    uai_se (x) simbora
+        oia_proce_ve("condicao invalida\n") uai
+    cabo
+    uai_senao simbora
+        oia_proce_ve("nao entrou\n") uai
+    cabo
+cabo

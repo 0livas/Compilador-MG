@@ -1,0 +1,9 @@
+bora_cumpade main()
+simbora
+    trem_di_numeru a uai
+    trem_di_numeru b uai
+    a fica_assim_entao 072 uai
+    b fica_assim_entao a + 071 uai
+    oia_proce_ve(a, " ", b, "\n") uai
+    ta_bao 0 uai
+cabo

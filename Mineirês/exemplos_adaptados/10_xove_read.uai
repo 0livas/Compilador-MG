@@ -1,0 +1,8 @@
+bora_cumpade main()
+simbora
+    trem_di_numeru n uai
+    oia_proce_ve("Digite um numero:\n") uai
+    xove(trem_di_numeru, n) uai
+    oia_proce_ve(n, "\n") uai
+    ta_bao 0 uai
+cabo

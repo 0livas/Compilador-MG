@@ -125,7 +125,7 @@ class GeradorQuadruplas:
                     getattr(stmt, "coluna", 0),
                 )
 
-            self._emitir("call", "read", stmt.target, "null")
+            self._emitir("call", "read", stmt.target, tipo_entrada)
             return
 
         if isinstance(stmt, OutputStmt):
@@ -259,11 +259,21 @@ class GeradorQuadruplas:
         fim_label = self._novo_rotulo()
         case_labels = [self._novo_rotulo() for _ in stmt.cases]
         default_label = self._novo_rotulo() if stmt.default_statements is not None else fim_label
+        casos_vistos: set[tuple[str, str]] = set()
 
         for case, case_label in zip(stmt.cases, case_labels):
             valor_caso, tipo_caso = self._gerar_expr(case.value)
             if tipo_switch != tipo_caso:
                 raise SemanticError(f"Tipo do case ({tipo_caso}) incompatível com o switch ({tipo_switch})", getattr(stmt, 'linha', 0), getattr(stmt, 'coluna', 0))
+
+            chave_caso = (tipo_caso, valor_caso)
+            if chave_caso in casos_vistos:
+                raise SemanticError(
+                    f"Caso duplicado no switch: valor {valor_caso}",
+                    getattr(case, 'linha', 0),
+                    getattr(case, 'coluna', 0),
+                )
+            casos_vistos.add(chave_caso)
                 
             comparacao = self._novo_temporario()
             self._emitir("eq", comparacao, valor_switch, valor_caso)
